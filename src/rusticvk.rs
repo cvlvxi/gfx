@@ -1,11 +1,14 @@
 use vulkano::buffer::BufferUsage;
 use vulkano::buffer::CpuAccessibleBuffer;
+use vulkano::command_buffer::AutoCommandBufferBuilder;
+use vulkano::command_buffer::CommandBuffer;
 use vulkano::device::Device;
 use vulkano::device::DeviceExtensions;
 use vulkano::device::Features;
 use vulkano::instance::Instance;
 use vulkano::instance::InstanceExtensions;
 use vulkano::instance::PhysicalDevice;
+use vulkano::sync::GpuFuture;
 
 use std::sync::Arc;
 use vulkano::device::Queue;
@@ -53,9 +56,36 @@ impl RusticVK {
     }
 
     pub fn createBuffers(&self) {
-        let data = 12;
-        let buffer =
-            CpuAccessibleBuffer::from_data(self.device.clone(), BufferUsage::all(), false, data)
-                .expect("failed to create buffer");
+        let source_content = 0..64;
+        let source = CpuAccessibleBuffer::from_iter(
+            self.device.clone(),
+            BufferUsage::all(),
+            false,
+            source_content,
+        )
+        .expect("failed to create buffer");
+
+        let dest_content = (0..64).map(|_| 0);
+        let dest = CpuAccessibleBuffer::from_iter(
+            self.device.clone(),
+            BufferUsage::all(),
+            false,
+            dest_content,
+        )
+        .expect("failed to create buffer");
+        let mut builder =
+            AutoCommandBufferBuilder::new(self.device.clone(), self.queue.family()).unwrap();
+        builder.copy_buffer(source.clone(), dest.clone()).unwrap();
+        let command_buffer = builder.build().unwrap();
+        let finished = command_buffer.execute(self.queue.clone()).unwrap();
+        // Data is currently being written to the GPU
+        finished.then_signal_fence_and_flush().unwrap()
+        .wait(None).unwrap();
+        let src_content = source.read().unwrap();
+        let dest_content = dest.read().unwrap();
+
+
+        println!("{:?}", &*src_content);
+        println!("{:?}", &*dest_content);
     }
 }
