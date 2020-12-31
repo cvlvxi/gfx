@@ -8,6 +8,8 @@
 #include <cstdlib>
 #include <optional>
 
+#define LOG(x) std::cout << x << '\n';
+
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
@@ -203,6 +205,8 @@ private:
 
             i++;
         }
+        LOG("hello world") 
+        LOG(i)
 
         return indices;
     }
@@ -247,7 +251,7 @@ private:
     }
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
-        std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+        // std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
         return VK_FALSE;
     }

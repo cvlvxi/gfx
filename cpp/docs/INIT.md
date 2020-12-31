@@ -11,6 +11,11 @@
 	* [VkResult from vulkan methods](#VkResultfromvulkanmethods)
 	* [Cleaning up VK Objects](#CleaningupVKObjects)
 * [Validation Layer](#ValidationLayer)
+	* [Types of Validation Layers](#TypesofValidationLayers)
+	* [VK_LAYER_KHRONOS_validation](#VK_LAYER_KHRONOS_validation)
+* [Physical Devices & Queue Families](#PhysicalDevicesQueueFamilies)
+	* [GPU Device](#GPUDevice)
+	* [Array of all devices](#Arrayofalldevices)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -135,10 +140,10 @@ void cleanup() {
     - Tracing Vulkan calls for profiling and replaying
 
 
-### Types of Validation Layers
+### <a name='TypesofValidationLayers'></a>Types of Validation Layers
 - two different types of validation layers in Vulkan: instance and device specific. 
 
-### VK_LAYER_KHRONOS_validation
+### <a name='VK_LAYER_KHRONOS_validation'></a>VK_LAYER_KHRONOS_validation
 - All standard validations are bundled in this 
 
 ```c++
@@ -152,3 +157,37 @@ const std::vector<const char*> validationLayers = {
     const bool enableValidationLayers = true;
 #endif
 ```
+
+-----------------------------------------------------------
+
+## <a name='PhysicalDevicesQueueFamilies'></a>Physical Devices & Queue Families
+- [Docs: Physical Devices & Queue Families](https://vulkan-tutorial.com/en/Drawing_a_triangle/Setup/Physical_devices_and_queue_families)
+
+### <a name='GPUDevice'></a>GPU Device
+- The graphics card that we'll end up selecting will be stored in a VkPhysicalDevice handle
+- `VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;`
+    - This object will be implicitly destroyed when the VkInstance is destroyed, 
+
+### <a name='Arrayofalldevices'></a>Array of all devices
+
+```C++
+uint32_t deviceCount = 0;
+std::vector<VkPhysicalDevice> devices(deviceCount);
+vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+```
+
+### Check what stuff device supports
+- See vkGetPhysicalDeviceProperties.
+
+```c++
+VkPhysicalDeviceProperties deviceProperties;
+vkGetPhysicalDeviceProperties(device, &deviceProperties);
+```
+
+## Queue Families
+- Different queue families have different functionalities
+- e.g. a queue family that only allows processing of compute commands or one that only allows memory transfer related commands.
+
+### findQueueFamilies
+- Look for queue with supported Graphics commands
+- Use std optional to say whether it exists or not 
