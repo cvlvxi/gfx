@@ -16,6 +16,10 @@
 * [Physical Devices & Queue Families](#PhysicalDevicesQueueFamilies)
 	* [GPU Device](#GPUDevice)
 	* [Array of all devices](#Arrayofalldevices)
+	* [Check what stuff device supports](#Checkwhatstuffdevicesupports)
+* [Queue Families](#QueueFamilies)
+	* [findQueueFamilies](#findQueueFamilies)
+* [Logical Devices and Queues](#LogicalDevicesandQueues)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -176,7 +180,7 @@ std::vector<VkPhysicalDevice> devices(deviceCount);
 vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 ```
 
-### Check what stuff device supports
+### <a name='Checkwhatstuffdevicesupports'></a>Check what stuff device supports
 - See vkGetPhysicalDeviceProperties.
 
 ```c++
@@ -184,10 +188,17 @@ VkPhysicalDeviceProperties deviceProperties;
 vkGetPhysicalDeviceProperties(device, &deviceProperties);
 ```
 
-## Queue Families
+## <a name='QueueFamilies'></a>Queue Families
 - Different queue families have different functionalities
 - e.g. a queue family that only allows processing of compute commands or one that only allows memory transfer related commands.
 
-### findQueueFamilies
+### <a name='findQueueFamilies'></a>findQueueFamilies
 - Look for queue with supported Graphics commands
 - Use std optional to say whether it exists or not 
+
+
+-----------------------------------------------------------
+
+## <a name='LogicalDevicesandQueues'></a>Logical Devices and Queues 
+- [Logical Devices and Queues](https://vulkan-tutorial.com/en/Drawing_a_triangle/Setup/Logical_device_and_queues)
+- After selecting a physical device to use we need to set up a logical device to interface with it

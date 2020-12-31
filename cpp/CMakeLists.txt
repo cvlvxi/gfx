@@ -13,7 +13,7 @@ set(WARNING_FLAGS "-Wall")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNING_FLAGS}")
 
 find_package(vulkan)
-find_package(glfw3 3.2.1 REQUIRED)
+find_package(glfw3 3.3.0 REQUIRED)
 
 
 add_executable(main src/main.cpp)
