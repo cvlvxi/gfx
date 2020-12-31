@@ -137,3 +137,18 @@ void cleanup() {
 
 ### Types of Validation Layers
 - two different types of validation layers in Vulkan: instance and device specific. 
+
+### VK_LAYER_KHRONOS_validation
+- All standard validations are bundled in this 
+
+```c++
+const std::vector<const char*> validationLayers = {
+    "VK_LAYER_KHRONOS_validation"
+};
+
+#ifdef NDEBUG
+    const bool enableValidationLayers = false;
+#else
+    const bool enableValidationLayers = true;
+#endif
+```
