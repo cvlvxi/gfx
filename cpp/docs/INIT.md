@@ -456,6 +456,6 @@ createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 - Allows for color swizziling 
 - What's color swizziling? 
 
-```
-In computer graphics, swizzling is the ability to compose vectors by arbitrarily rearranging and combining components of other vectors.[1] For example, if A = {1,2,3,4}, where the components are x, y, z, and w respectively, you could compute B = A.wwxy, whereupon B would equal {4,4,1,2}. Additionally, combining two two-component vectors can create a four-component vector, or any combination of vectors and swizzling. This is common in GPGPU applications
-```
+In computer graphics, swizzling is the ability to compose vectors by arbitrarily rearranging and combining components of other vectors.
+
+For example, if `A = {1,2,3,4}`, where the components are x, y, z, and w respectively, you could compute `B = A.wwxy`, whereupon B would equal {4,4,1,2}. Additionally, combining two two-component vectors can create a four-component vector, or any combination of vectors and swizzling. This is common in GPGPU applications
