@@ -57,6 +57,8 @@
 	* [Compiling vs Runtime](#CompilingvsRuntime)
 	* [Tools](#Tools)
 	* [Glsl basics](#Glslbasics)
+	* [Vertex Shader](#VertexShader-1)
+	* [Clip Coordinate & Homogeneous Coordinates](#ClipCoordinateHomogeneousCoordinates)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -586,3 +588,20 @@ You'll need to create many pipelines that will be used in the rendering operatio
 - vec3 for vector 3 
 - vec3(1.0,2.0,3.0).xy produces a vec2
 - Can compose vec3 and vec2  e.g. vec3(vec2(1,2), 1) to produce a vec3
+
+### <a name='VertexShader-1'></a>Vertex Shader 
+
+Processes every vertex and passes attributes like color, texture coordinates, normals and produces a final position and the attributes
+
+passes to the rasterizer for interpolation over the fragments to produce a smooth gradient
+
+### <a name='ClipCoordinateHomogeneousCoordinates'></a>Clip Coordinate & Homogeneous Coordinates
+- Four dimensional vector from the vertex shader that is turned into a `normalized device coordinate` by `dividing the vector by its last component`
+- Setting the fourth component to 1 will not change anything 
+
+<img src="img/homogencoords.png/>
+
+Now the frame buffer has (0,0) in the middle and `everything is between -1, 1`
+
+### Z-Coordinate
+- The Z coordinate now uses the same range as it does in Direct3D, from 0 to 1.

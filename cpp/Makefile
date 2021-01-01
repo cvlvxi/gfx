@@ -18,3 +18,6 @@ clean:
 test: all
 	(cd $(BUILD_DIR); make test)
 
+.PHONY: shaders
+shaders:
+	python build_shaders.py
