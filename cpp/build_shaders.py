@@ -13,9 +13,9 @@ def compile_shader(shader_file):
     ext = fn_parts[1]
 
     if ext == "vert":
-        new_path = os.path.join(shaders_dir, fn + ".vert.spv")
+        new_path = os.path.join(shaders_dir, "out", fn + ".vert.spv")
     elif ext == "frag":
-        new_path = os.path.join(shaders_dir, fn + ".frag.spv")
+        new_path = os.path.join(shaders_dir, "out", fn + ".frag.spv")
     else:
         print("Skipping: {}".format(shader_file))
         return

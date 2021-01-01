@@ -59,6 +59,16 @@
 	* [Glsl basics](#Glslbasics)
 	* [Vertex Shader](#VertexShader-1)
 	* [Clip Coordinate & Homogeneous Coordinates](#ClipCoordinateHomogeneousCoordinates)
+	* [Z-Coordinate](#Z-Coordinate)
+	* [GL_ARB_separate_shader_objects](#GL_ARB_separate_shader_objects)
+	* [Sending out attributes with layout](#Sendingoutattributeswithlayout)
+	* [gl_Position is a special attribute from vertex shader](#gl_Positionisaspecialattributefromvertexshader)
+	* [in and out params](#inandoutparams)
+* [ShaderModules (VKShaderModule)](#ShaderModulesVKShaderModule)
+	* [SPIRV use in Graphics Pipeline](#SPIRVuseinGraphicsPipeline)
+	* [VkPipelineShaderStageCreateInfo](#VkPipelineShaderStageCreateInfo)
+	* [pSpecializationInfo](#pSpecializationInfo)
+* [Fixed functions](#Fixedfunctions)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -603,5 +613,93 @@ passes to the rasterizer for interpolation over the fragments to produce a smoot
 
 Now the frame buffer has (0,0) in the middle and `everything is between -1, 1`
 
-### Z-Coordinate
+### <a name='Z-Coordinate'></a>Z-Coordinate
 - The Z coordinate now uses the same range as it does in Direct3D, from 0 to 1.
+
+### <a name='GL_ARB_separate_shader_objects'></a>GL_ARB_separate_shader_objects
+- See [here](https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_separate_shader_objects.txt)
+
+### <a name='Sendingoutattributeswithlayout'></a>Sending out attributes with layout
+
+```
+layout(location = 0) out vec3 fragColor;
+```
+
+Where location = 0 specifies framebuffer 0 
+
+Then in the main
+
+```c++
+void main() {
+    gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
+    fragColor = colors[gl_VertexIndex];
+}
+```
+
+### <a name='gl_Positionisaspecialattributefromvertexshader'></a>gl_Position is a special attribute from vertex shader
+- Needs to be set and is vec 4 
+- Custom out parameter specified fragColor
+
+### <a name='inandoutparams'></a>in and out params
+
+```c++
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+layout(location = 0) in vec3 fragColor;
+
+layout(location = 0) out vec4 outColor;
+
+void main() {
+    outColor = vec4(fragColor, 1.0);
+}
+```
+
+Then coming in we have the layout being set and the in and out params 
+
+## <a name='ShaderModulesVKShaderModule'></a>ShaderModules (VKShaderModule)
+
+- Create similar to above with createInfo builder pattern
+
+```c++
+VkShaderModuleCreateInfo createInfo{};
+createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+createInfo.codeSize = code.size();
+createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+```
+
+- Where code is the readFile `const std::vector<char>& code`
+
+### <a name='SPIRVuseinGraphicsPipeline'></a>SPIRV use in Graphics Pipeline
+- Shader modules are a wrapper around the SPIRV bytecode
+- `Compilation and Linking` of this bytecode happens when graphics pipeline is created
+- Shader modules Can be destroyed as soon as this is done 
+- i.e. call this as soon as Grpahics pipeline init done
+
+```c++
+    vkDestroyShaderModule(device, fragShaderModule, nullptr);
+    vkDestroyShaderModule(device, vertShaderModule, nullptr);
+```
+
+### <a name='VkPipelineShaderStageCreateInfo'></a>VkPipelineShaderStageCreateInfo
+- We actually need to create Vertex & Fragment shader stages manually
+
+```c++
+
+        VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+        vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        vertShaderStageInfo.module = vertShaderModule;
+        vertShaderStageInfo.pName = "main";
+```
+
+### <a name='pSpecializationInfo'></a>pSpecializationInfo
+- This is something you can add to the ShaderStageInfo 
+- Allows you to specify `values for shader constants`
+- e.g. you can load a shader stage with default preconfigured values
+- This is more efficient than variables needed at render time 
+
+-----------------------------------------------------------
+
+## <a name='Fixedfunctions'></a>Fixed functions
+- [Docs: Fixed Functions](https://vulkan-tutorial.com/en/Drawing_a_triangle/Graphics_pipeline_basics/Fixed_functions)

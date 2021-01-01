@@ -5,6 +5,9 @@
 	* [Vector Resize](#VectorResize)
 * [size_t](#size_t)
 	* [size_t for index iteration for loops](#size_tforindexiterationforloops)
+* [File IO](#FileIO)
+	* [Seeking to end of file std::ios::ate](#Seekingtoendoffilestd::ios::ate)
+	* [Getting the filesize with tellg](#Gettingthefilesizewithtellg)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -31,5 +34,23 @@
 ```c++
         for (size_t i = 0; i < swapChainImages.size(); i++) {
             VkImageViewCreateInfo createInfo{};
+```
+
+-----------------------------------------------------------
+
+## <a name='FileIO'></a>File IO
+- iostream and fstream
+
+### <a name='Seekingtoendoffilestd::ios::ate'></a>Seeking to end of file std::ios::ate
+- Specify this to go straight to the end (usually for getting size of file)
+
+```
+std::ifstream file(filename, std::ios::ate | std::ios::binary);
+```
+
+### <a name='Gettingthefilesizewithtellg'></a>Getting the filesize with tellg
+
+```c++
+size_t fileSize = (size_t) file.tellg();
 ```
 
