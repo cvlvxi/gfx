@@ -47,6 +47,16 @@
 	* [Rasterisation stage](#Rasterisationstage)
 	* [Fragment Shader](#FragmentShader)
 	* [Color Blending](#ColorBlending)
+* [Graphics Pipeline Mutability](#GraphicsPipelineMutability)
+	* [Immutable](#Immutable)
+	* [Shadow Maps](#ShadowMaps)
+* [Shader Modules](#ShaderModules)
+	* [SPIR-V](#SPIR-V)
+	* [Why bytecode?](#Whybytecode)
+	* [Problems with GLSL/HLSL](#ProblemswithGLSLHLSL)
+	* [Compiling vs Runtime](#CompilingvsRuntime)
+	* [Tools](#Tools)
+	* [Glsl basics](#Glslbasics)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -519,7 +529,7 @@ if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != 
 - `Programmable`
 - Run on the incoming input primitive (point, triangle, line) 
 - discard things or create more primitives
-- similar t otesselation shader
+- similar to the tesselation shader
 - `Performance is not good except on Intel's integrated GPU's`
 
 ### <a name='Rasterisationstage'></a>Rasterisation stage
@@ -537,3 +547,42 @@ if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != 
 ### <a name='ColorBlending'></a>Color Blending
 - Mix different fragments that map to same pixel in framebuffer
 
+
+## <a name='GraphicsPipelineMutability'></a>Graphics Pipeline Mutability 
+
+### <a name='Immutable'></a>Immutable 
+The graphics pipeline in Vulkan is almost completely immutable, so you must recreate the pipeline from scratch if you want to change shaders, bind different framebuffers or change the blend function
+
+You'll need to create many pipelines that will be used in the rendering operations 
+
+### <a name='ShadowMaps'></a>Shadow Maps
+- When you would disable the fragment shader to produce shadows
+- [Wiki](https://en.wikipedia.org/wiki/Shadow_mapping)
+
+-----------------------------------------------------------
+
+## <a name='ShaderModules'></a>Shader Modules
+
+### <a name='SPIR-V'></a>SPIR-V 
+- A bytecode format that can be used with `Vulkan and OpenCL`
+- Needs to be compiled (can be from GLSL or HLSL)
+
+### <a name='Whybytecode'></a>Why bytecode?
+- Turning shader code into native code with bytecode is significantly less complex
+
+### <a name='ProblemswithGLSLHLSL'></a>Problems with GLSL/HLSL
+- When shader code becomes quite big with syntax errors and is non trivial then `vendor's drivers could reject your code`
+
+### <a name='CompilingvsRuntime'></a>Compiling vs Runtime
+- Compile to see any issues
+- Can also include a runtime library to produce spirv at runtime
+
+### <a name='Tools'></a>Tools
+- `glslangValidator`
+- `glslc` - GLSLc compiler 
+- You can use functionality like `includes` (nice!)
+
+### <a name='Glslbasics'></a>Glsl basics
+- vec3 for vector 3 
+- vec3(1.0,2.0,3.0).xy produces a vec2
+- Can compose vec3 and vec2  e.g. vec3(vec2(1,2), 1) to produce a vec3
