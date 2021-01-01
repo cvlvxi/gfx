@@ -39,7 +39,7 @@
 	* [components & swizzling](#componentsswizzling)
 	* [subresourceRange](#subresourceRange)
 	* [Creating the ImageView vkCreateImageView](#CreatingtheImageViewvkCreateImageView)
-* [Graphics Pipeline: Intro](#GraphicsPipeline:Intro)
+* [Graphics Pipeline](#GraphicsPipeline)
 	* [Input Assembler](#InputAssembler)
 	* [Vertex Shader](#VertexShader)
 	* [Tesselation Shaders](#TesselationShaders)
@@ -496,7 +496,7 @@ if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != 
 
 -----------------------------------------------------------
 
-## <a name='GraphicsPipeline:Intro'></a>Graphics Pipeline: Intro
+## <a name='GraphicsPipeline'></a>Graphics Pipeline
 
 <img src="img/gfxpipeline.png"/>
 
