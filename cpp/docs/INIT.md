@@ -37,6 +37,16 @@
 	* [viewType](#viewType)
 	* [format](#format)
 	* [components & swizzling](#componentsswizzling)
+	* [subresourceRange](#subresourceRange)
+	* [Creating the ImageView vkCreateImageView](#CreatingtheImageViewvkCreateImageView)
+* [Graphics Pipeline: Intro](#GraphicsPipeline:Intro)
+	* [Input Assembler](#InputAssembler)
+	* [Vertex Shader](#VertexShader)
+	* [Tesselation Shaders](#TesselationShaders)
+	* [Geometry Shader](#GeometryShader)
+	* [Rasterisation stage](#Rasterisationstage)
+	* [Fragment Shader](#FragmentShader)
+	* [Color Blending](#ColorBlending)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -44,7 +54,7 @@
 	/vscode-markdown-toc-config -->
 <!-- /vscode-markdown-toc -->
 
-From the official documentation
+From the official documentation [here](https://vulkan-tutorial.com/en)
 
 ## <a name='Initialization'></a>Initialization
 - [Doc: Base Code](https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Base_code)
@@ -459,3 +469,71 @@ createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 In computer graphics, swizzling is the ability to compose vectors by arbitrarily rearranging and combining components of other vectors.
 
 For example, if `A = {1,2,3,4}`, where the components are x, y, z, and w respectively, you could compute `B = A.wwxy`, whereupon B would equal {4,4,1,2}. Additionally, combining two two-component vectors can create a four-component vector, or any combination of vectors and swizzling. This is common in GPGPU applications
+
+### <a name='subresourceRange'></a>subresourceRange 
+
+Describes which part of the image to access 
+
+```c++
+createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+createInfo.subresourceRange.baseMipLevel = 0;
+createInfo.subresourceRange.levelCount = 1;
+createInfo.subresourceRange.baseArrayLayer = 0;
+createInfo.subresourceRange.layerCount = 1;
+```
+
+Above is no mipmapping or multiple layers 
+
+Use multiple layers for `steroscopic 3d applications` https://en.wikipedia.org/wiki/Stereoscopy
+
+### <a name='CreatingtheImageViewvkCreateImageView'></a>Creating the ImageView vkCreateImageView
+
+```
+if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create image views!");
+}
+```
+
+-----------------------------------------------------------
+
+## <a name='GraphicsPipeline:Intro'></a>Graphics Pipeline: Intro
+
+<img src="img/gfxpipeline.png"/>
+
+### <a name='InputAssembler'></a>Input Assembler
+- Collect raw vertex data
+- Can use an `index buffer` for duplicated vertex data
+
+### <a name='VertexShader'></a>Vertex Shader
+- `Programmable`
+- For every vertices applies transformations
+- Vertex position to Screen Space
+- Pass each vertices to next
+
+### <a name='TesselationShaders'></a>Tesselation Shaders
+- `Programmable`
+- Subdivide geometry based on `rules`
+- e.g. make surfaces look like brick walls, staircases look not flat
+
+### <a name='GeometryShader'></a>Geometry Shader
+- `Programmable`
+- Run on the incoming input primitive (point, triangle, line) 
+- discard things or create more primitives
+- similar t otesselation shader
+- `Performance is not good except on Intel's integrated GPU's`
+
+### <a name='Rasterisationstage'></a>Rasterisation stage
+- From primitives into `fragments`
+- Pixel elements that fill on the `framebuffer` 
+- This will discard any fragments that `fall outside the screen`
+- Attributes from the vertex shader is `interpolated across fragments`
+- Does `Depth Testing` anything behind other framgnets are discarded
+
+### <a name='FragmentShader'></a>Fragment Shader
+- `Programmable`
+- Fragments that survive in the framebuffers are `written to and with a color and depth value`
+- Interpolates data from the vertex shader including `texture coodinates and normals for lighting`
+
+### <a name='ColorBlending'></a>Color Blending
+- Mix different fragments that map to same pixel in framebuffer
+
