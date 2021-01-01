@@ -20,6 +20,23 @@
 * [Queue Families](#QueueFamilies)
 	* [findQueueFamilies](#findQueueFamilies)
 * [Logical Devices and Queues](#LogicalDevicesandQueues)
+* [Presenting: Surfaces](#Presenting:Surfaces)
+	* [More queues](#Morequeues)
+* [SwapChain](#SwapChain)
+	* [Enabling](#Enabling)
+	* [Compatibility with Window Surface](#CompatibilitywithWindowSurface)
+	* [Swap Chain Settings](#SwapChainSettings)
+		* [Surface Format](#SurfaceFormat)
+		* [Presentation Mode](#PresentationMode)
+		* [Swap Extent](#SwapExtent)
+	* [Creating Swap Chain](#CreatingSwapChain)
+* [Image Views](#ImageViews)
+	* [VKImage](#VKImage)
+	* [VKImageView](#VKImageView)
+	* [Creating ImageView](#CreatingImageView)
+	* [viewType](#viewType)
+	* [format](#format)
+	* [components & swizzling](#componentsswizzling)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -202,3 +219,243 @@ vkGetPhysicalDeviceProperties(device, &deviceProperties);
 ## <a name='LogicalDevicesandQueues'></a>Logical Devices and Queues 
 - [Logical Devices and Queues](https://vulkan-tutorial.com/en/Drawing_a_triangle/Setup/Logical_device_and_queues)
 - After selecting a physical device to use we need to set up a logical device to interface with it
+
+
+-----------------------------------------------------------
+## <a name='Presenting:Surfaces'></a>Presenting: Surfaces
+- [Surfaces](https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Window_surface)
+- VkSurfaceKHR surface;
+- Comes with glfw as an extension in order to talk to vulkan
+
+```c++
+
+    void createSurface() {
+        if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create window surface!");
+        }
+    }
+```
+
+### <a name='Morequeues'></a>More queues
+
+- Present Family queue 
+
+```c++
+VkQueue graphicsQueue;
+VkQueue presentQueue;
+
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+    std::optional<uint32_t> presentFamily;
+
+    bool isComplete() {
+        return graphicsFamily.has_value() && presentFamily.has_value();
+    }
+};
+```
+
+- Present may not be applicable think server side gpu
+
+```c++
+
+            VkBool32 presentSupport = false;
+            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+
+            if (presentSupport) {
+                indices.presentFamily = i;
+            }
+```
+
+- Create the new queue for the `logical device` (1to1 with physical gfx device)
+
+
+-----------------------------------------------------------
+
+
+## <a name='SwapChain'></a>SwapChain
+
+### <a name='Enabling'></a>Enabling 
+just like validation layer extensions swapchain is an extension to vulkan
+
+```c++
+const std::vector<const char*> validationLayers = {
+    "VK_LAYER_KHRONOS_validation"
+};
+
+const std::vector<const char*> deviceExtensions = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+```
+
+- Enabling requires adding this to the Logical Device creation 
+- In createLogicalDevice()
+
+```c++
+
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+        createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+```
+
+### <a name='CompatibilitywithWindowSurface'></a>Compatibility with Window Surface
+- Swap chain may not be compatible with the glfw window surface so we need to query the following:
+    - Basic surface capabilities (min/max number of images in swap chain, min/max width and height of images)
+    - Surface formats (pixel format, color space)
+    - Available presentation modes
+    
+
+### <a name='SwapChainSettings'></a>Swap Chain Settings
+
+- Surface format (color depth)
+- Presentation mode (conditions for "swapping" images to the screen)
+- Swap extent (resolution of images in swap chain)
+
+#### <a name='SurfaceFormat'></a>Surface Format
+- e.g. Surface can support color channels and types
+- `VK_FROMAT_B8G8R8A_SRGB`a
+- Can do a ranking of different formats to choose which one is best
+
+#### <a name='PresentationMode'></a>Presentation Mode
+- Presents the actual conditions for showing images to the screen
+- Modes:
+    - `VK_PRESENT_MODE_IMMEDIATE_KHR`: Images submitted right away to screen without tearing
+    - `VK_PRESENT_MODE_FIFO_KHR`: FIFO queue similar to vertical sync
+    - `VK_PRESENT_MODE_FIFO_RELAXED_KHR` 
+    - `VK_PRESENT_MODE_MAILBOX_KHR`: triple bufferring
+
+- `VK_PRESENT_MODE_FIFO_KHR` guaranteed to be there
+
+#### <a name='SwapExtent'></a>Swap Extent 
+- Resolution of swap chain images 
+- Read up on it more [here](https://vulkan-tutorial.com/en/Drawing_a_triangle/Presentation/Swap_chain)
+
+### <a name='CreatingSwapChain'></a>Creating Swap Chain
+
+```c++
+
+void createSwapChain() {
+    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
+
+    VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
+    VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
+    VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+}
+```
+
+- set min amount of images + 1 (+1) as acquiring images setting this is better
+- set max image count 
+- create swapchaininfo struct 
+- Set the surface format and colorspace properties
+
+```c++
+createInfo.imageFormat = surfaceFormat.format;
+createInfo.imageColorSpace = surfaceFormat.colorSpace;
+```
+
+-----------------------------------------------------------
+
+## <a name='ImageViews'></a>Image Views
+- [Image Views](https://vulkan-tutorial.com/en/Drawing_a_triangle/Presentation/Image_views)
+
+### <a name='VKImage'></a>VKImage
+- Used in the swap chain 
+- In order to use it we need to create a `VKImageView` object 
+
+### <a name='VKImageView'></a>VKImageView
+- View into an Image describes:
+    - How to access the image
+    - Which part of the image to access
+
+```c++
+std::vector<VkImageView> swapChainImageViews;
+
+void createImageViews() {
+    swapChainImageViews.resize(swapChainImages.size());
+    ...
+}
+
+```
+
+- Need to destroy when instance is destroyed
+
+### <a name='CreatingImageView'></a>Creating ImageView
+
+```c++
+        for (size_t i = 0; i < swapChainImages.size(); i++) {
+            VkImageViewCreateInfo createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            createInfo.image = swapChainImages[i];
+```
+
+sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO
+
+Iterating through each swapChainimage... which is `std::vector<VkImage> swapChainImages;`
+
+### <a name='viewType'></a>viewType
+
+```
+createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+```
+
+What's a view type?
+
+```c
+typedef enum VkImageViewType {
+    VK_IMAGE_VIEW_TYPE_1D = 0,
+    VK_IMAGE_VIEW_TYPE_2D = 1,
+    VK_IMAGE_VIEW_TYPE_3D = 2,
+    VK_IMAGE_VIEW_TYPE_CUBE = 3,
+    VK_IMAGE_VIEW_TYPE_1D_ARRAY = 4,
+    VK_IMAGE_VIEW_TYPE_2D_ARRAY = 5,
+    VK_IMAGE_VIEW_TYPE_CUBE_ARRAY = 6,
+    VK_IMAGE_VIEW_TYPE_MAX_ENUM = 0x7FFFFFFF
+} VkImageViewType;
+```
+
+### <a name='format'></a>format
+
+```
+    VkFormat swapChainImageFormat;
+```
+
+Created in the swapchain 
+
+```
+        swapChainImageFormat = surfaceFormat.format;
+        swapChainExtent = extent;
+```
+
+Grabbed from the surfaceFormat (glfw)
+
+```
+        VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
+```
+
+here
+
+```c++
+
+    VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
+        for (const auto& availableFormat : availableFormats) {
+            if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+                return availableFormat;
+            }
+        }
+
+        return availableFormats[0];
+```
+
+### <a name='componentsswizzling'></a>components & swizzling
+
+```c++
+createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+```
+
+- Allows for color swizziling 
+- What's color swizziling? 
+
+```
+In computer graphics, swizzling is the ability to compose vectors by arbitrarily rearranging and combining components of other vectors.[1] For example, if A = {1,2,3,4}, where the components are x, y, z, and w respectively, you could compute B = A.wwxy, whereupon B would equal {4,4,1,2}. Additionally, combining two two-component vectors can create a four-component vector, or any combination of vectors and swizzling. This is common in GPGPU applications
+```

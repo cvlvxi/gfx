@@ -19,3 +19,5 @@ find_package(glfw3 3.3.0 REQUIRED)
 add_executable(main src/main.cpp)
 
 target_link_libraries(main Vulkan::Vulkan glfw)
+
+add_subdirectory(playground)

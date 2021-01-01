@@ -44,7 +44,7 @@ impl RusticVK {
                 physical,
                 &Features::none(),
                 &DeviceExtensions::none(),
-                [(queue_family, 0.5)].iter().cloned(),
+                [(queue_family, 0.5)].into_iter()
             )
             .expect("failed to create device")
         };
@@ -56,7 +56,7 @@ impl RusticVK {
         }
     }
 
-    pub fn createBuffers(&mut self) {
+    pub fn createBuffers(&self) {
         let source_content = 0..64;
         let source = CpuAccessibleBuffer::from_iter(
             self.device.clone(),
