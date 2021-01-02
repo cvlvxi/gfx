@@ -83,6 +83,16 @@
 	* [Dynamic State (changing pipeline without restart)](#DynamicStatechangingpipelinewithoutrestart)
 	* [Pipeline layout](#Pipelinelayout)
 * [Render Passes](#RenderPasses)
+	* [Single Color Buffer attachment](#SingleColorBufferattachment)
+	* [Triangle](#Triangle)
+	* [Color Attachment Layout](#ColorAttachmentLayout)
+		* [Initial Layout](#InitialLayout)
+	* [Final Layout](#FinalLayout)
+	* [Subpasses and attachment references](#Subpassesandattachmentreferences)
+	* [attachment](#attachment)
+	* [Subpass Description](#SubpassDescription)
+	* [Other attachment Types](#OtherattachmentTypes)
+* [Render Pass](#RenderPass)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -897,3 +907,137 @@ if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout
 
 ## <a name='RenderPasses'></a>Render Passes
 - [Docs: Render Passes](https://vulkan-tutorial.com/en/Drawing_a_triangle/Graphics_pipeline_basics/Render_passes)
+
+All about the framebuffer setup and attaching it to the pipeline
+
+THis needs to happen before the pipeline is created
+
+What we'll need to specify is: We need to specify how many color and depth buffers there will be, how many samples to use for each of them and how their contents should be handled throughout the rendering operations.
+
+### <a name='SingleColorBufferattachment'></a>Single Color Buffer attachment
+
+```c++
+void createRenderPass() {
+    VkAttachmentDescription colorAttachment{};
+    colorAttachment.format = swapChainImageFormat;
+    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+}
+```
+
+- loadOp determines what to do with the data before rendering and after rendering
+- Options:
+
+```
+VK_ATTACHMENT_LOAD_OP_LOAD: Preserve the existing contents of the attachment
+VK_ATTACHMENT_LOAD_OP_CLEAR: Clear the values to a constant at the start
+VK_ATTACHMENT_LOAD_OP_DONT_CARE: Existing contents are undefined; we don't care about them
+```
+
+- storeOp determines whether we want to store the data for later 
+
+```
+VK_ATTACHMENT_STORE_OP_STORE: Rendered contents will be stored in memory and can be read later
+VK_ATTACHMENT_STORE_OP_DONT_CARE: Contents of the framebuffer will be undefined after the rendering operation
+```
+
+### <a name='Triangle'></a>Triangle
+- For the triangle we want to load and clear the data to a black screen and store the data
+
+```
+colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+```
+
+### <a name='ColorAttachmentLayout'></a>Color Attachment Layout
+
+```c++
+colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+```
+
+- There's a certain pixel format for Textures / Frame Buffers in a VKImage but the layout may change 
+
+Some layouts
+
+```
+VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: Images used as color attachment
+VK_IMAGE_LAYOUT_PRESENT_SRC_KHR: Images to be presented in the swap chain
+VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: Images to be used as destination for a memory copy operation
+
+```
+
+#### <a name='InitialLayout'></a>Initial Layout
+The initialLayout specifies which layout the image will have before the render pass begin
+
+`VK_IMAGE_LAYOUT_UNDEFINED` means we don't care what the previous layout was 
+
+### <a name='FinalLayout'></a>Final Layout
+The finalLayout specifies the layout to automatically transition to when the render pass finishes
+
+### <a name='Subpassesandattachmentreferences'></a>Subpasses and attachment references 
+- Subpasses are subsequent rendering operations that depend on the framebuffers previous passes
+- e.g. post processing effects
+- If you group these rendering operations into one render pass
+- then Vulkan is able to reorder the operations and conserve memory bandwidth for possibly better performance
+
+```c++
+VkAttachmentReference colorAttachmentRef{};
+colorAttachmentRef.attachment = 0;
+colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+```
+
+### <a name='attachment'></a>attachment
+- The attachment parameter specifies which attachment to reference by its index in the attachment descriptions array.
+
+### <a name='SubpassDescription'></a>Subpass Description
+- This could be compute subpasses in the future
+
+```c++
+VkSubpassDescription subpass{};
+subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+```
+
+- Add the reference to the color attachment
+
+```c++
+subpass.colorAttachmentCount = 1;
+subpass.pColorAttachments = &colorAttachmentRef;
+```
+
+The index of the attachment in this array is directly referenced from the fragment shader 
+- with the layout(location = 0) out vec4 outColor directive!
+
+### <a name='OtherattachmentTypes'></a>Other attachment Types
+```
+pInputAttachments: Attachments that are read from a shader
+pResolveAttachments: Attachments used for multisampling color attachments
+pDepthStencilAttachment: Attachment for depth and stencil data
+pPreserveAttachments: Attachments that are not used by this subpass, but for which the data must be preserved
+```
+
+## <a name='RenderPass'></a>Render Pass
+- New variables added to the app
+
+```
+VkRenderPass renderPass;
+VkPipelineLayout pipelineLayout;
+```
+
+- We will add array of attachments and subpasses and describe it with `VKRenderPassCreateInfo`
+
+```c++
+VkRenderPassCreateInfo renderPassInfo{};
+renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+renderPassInfo.attachmentCount = 1;
+renderPassInfo.pAttachments = &colorAttachment;
+renderPassInfo.subpassCount = 1;
+renderPassInfo.pSubpasses = &subpass;
+
+if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create render pass!");
+}
+```
+
+- You will need to cleanup the pipeline layout and render pass 
