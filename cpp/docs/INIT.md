@@ -69,6 +69,20 @@
 	* [VkPipelineShaderStageCreateInfo](#VkPipelineShaderStageCreateInfo)
 	* [pSpecializationInfo](#pSpecializationInfo)
 * [Fixed functions](#Fixedfunctions)
+	* [Vertex Input](#VertexInput)
+	* [VkPipelineInputAssemblyStateCreateInfo](#VkPipelineInputAssemblyStateCreateInfo)
+	* [ViewPorts and Scissors](#ViewPortsandScissors)
+	* [Filtering image with Scissor Rectangles + Viewport](#FilteringimagewithScissorRectanglesViewport)
+	* [Rasterizer](#Rasterizer)
+	* [Non fill modes need](#Nonfillmodesneed)
+	* [Face culling](#Faceculling)
+	* [Depth properties](#Depthproperties)
+	* [Multisampling for anti-aliasing](#Multisamplingforanti-aliasing)
+	* [Depth and stencil testing](#Depthandstenciltesting)
+	* [Color Blending](#ColorBlending-1)
+	* [Dynamic State (changing pipeline without restart)](#DynamicStatechangingpipelinewithoutrestart)
+	* [Pipeline layout](#Pipelinelayout)
+* [Render Passes](#RenderPasses)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -703,3 +717,183 @@ createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
 ## <a name='Fixedfunctions'></a>Fixed functions
 - [Docs: Fixed Functions](https://vulkan-tutorial.com/en/Drawing_a_triangle/Graphics_pipeline_basics/Fixed_functions)
+
+### <a name='VertexInput'></a>Vertex Input
+- Structure: `VkPipelineVertexInputStateCreateInfo`
+- in createGraphicsPipeline
+
+```c++
+
+        VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+        vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        vertexInputInfo.vertexBindingDescriptionCount = 0;
+        vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
+        vertexInputInfo.vertexAttributeDescriptionCount = 0;
+        vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+```
+
+- Details for VertexBuffer in `pVertexBindingDescriptions`
+- Details for VertexBuffer Attributes in `pVertexAttributeDescriptions`
+
+### <a name='VkPipelineInputAssemblyStateCreateInfo'></a>VkPipelineInputAssemblyStateCreateInfo 
+- What does this describe?
+    - What kind of geometry? `Point List, Line List, Triangle List, Triangle Strip`
+    - Specify which indices to use as attributes i.e. if color first then position 
+    - Optimizations like reusing vertices with `primitiveRestartEnable` = `VK_TRUE`
+        - This will breka up lines in _STRIP topology
+
+```c++
+VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+inputAssembly.primitiveRestartEnable = VK_FALSE;
+```
+
+### <a name='ViewPortsandScissors'></a>ViewPorts and Scissors
+- `VKViewport`
+- Viewport described a region of the framebuffer the output will be rendered to
+- Almost always be (0, 0) to (width, height) 
+
+```c++
+VkViewport viewport{};
+viewport.x = 0.0f;
+viewport.y = 0.0f;
+viewport.width = (float) swapChainExtent.width;
+viewport.height = (float) swapChainExtent.height;
+viewport.minDepth = 0.0f;
+viewport.maxDepth = 1.0f;
+```
+
+- Note that swapChainExtent.width/height is used as this may different from the size of the window.
+
+### <a name='FilteringimagewithScissorRectanglesViewport'></a>Filtering image with Scissor Rectangles + Viewport 
+
+<img src="img/scissor.png" />
+
+- View ports define transformation from image to framebuffer / scissor rectangles
+- Any pixels outside the recttangle will be discarded
+
+Defining a Scissor
+
+```c++
+VkRect2D scissor{};
+scissor.offset = {0, 0};
+scissor.extent = swapChainExtent;
+
+....
+VkPipelineViewportStateCreateInfo viewportState{};
+viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+viewportState.viewportCount = 1;
+viewportState.pViewports = &viewport;
+viewportState.scissorCount = 1;
+viewportState.pScissors = &scissor;
+```
+
+### <a name='Rasterizer'></a>Rasterizer 
+- Fragments from vertex shader into color
+- Does depth testing and face culling and scissor test
+- Can do wireframe rendering 
+
+```c++
+VkPipelineRasterizationStateCreateInfo rasterizer{};
+rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+rasterizer.depthClampEnable = VK_FALSE;
+rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+```
+
+### <a name='Nonfillmodesneed'></a>Non fill modes need
+
+```
+rasterizer.lineWidth = 1.0f;
+```
+
+### <a name='Faceculling'></a>Face culling
+
+```c++
+rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+```
+
+### <a name='Depthproperties'></a>Depth properties
+
+```
+rasterizer.depthBiasEnable = VK_FALSE;
+rasterizer.depthBiasConstantFactor = 0.0f; // Optional
+rasterizer.depthBiasClamp = 0.0f; // Optional
+rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
+```
+
+### <a name='Multisamplingforanti-aliasing'></a>Multisampling for anti-aliasing
+
+```c++
+VkPipelineMultisampleStateCreateInfo multisampling{};
+multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+multisampling.sampleShadingEnable = VK_FALSE;
+multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+multisampling.minSampleShading = 1.0f; // Optional
+multisampling.pSampleMask = nullptr; // Optional
+multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
+multisampling.alphaToOneEnable = VK_FALSE; // Optional
+```
+
+- How: It works by combining the fragment shader results of multiple polygons that rasterize to the same pixel. 
+- Primarily on edges
+
+### <a name='Depthandstenciltesting'></a>Depth and stencil testing
+
+- `VkPipelineDepthStencilStateCreateInfo`
+
+### <a name='ColorBlending-1'></a>Color Blending
+- modifying the color in a specific framebuffer pixel lolcation
+- Mix the old and new or combine the old and new using a bitwise operation 
+
+```c++
+VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+colorBlendAttachment.blendEnable = VK_FALSE;
+colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
+colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+```
+
+### <a name='DynamicStatechangingpipelinewithoutrestart'></a>Dynamic State (changing pipeline without restart)
+
+```c++
+VkDynamicState dynamicStates[] = {
+    VK_DYNAMIC_STATE_VIEWPORT,
+    VK_DYNAMIC_STATE_LINE_WIDTH
+};
+
+VkPipelineDynamicStateCreateInfo dynamicState{};
+dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+dynamicState.dynamicStateCount = 2;
+dynamicState.pDynamicStates = dynamicStates;
+```
+
+### <a name='Pipelinelayout'></a>Pipeline layout
+- For passing uniform values in shaders which act as globals
+- Neede at pipeline cration 
+- `VkPipelineLayout pipelineLayout;`
+
+```c++
+VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+pipelineLayoutInfo.setLayoutCount = 0; // Optional
+pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
+pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+
+if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create pipeline layout!");
+}
+```
+
+- Make sure to cleanup this pipeline layout
+
+-----------------------------------------------------------
+
+## <a name='RenderPasses'></a>Render Passes
+- [Docs: Render Passes](https://vulkan-tutorial.com/en/Drawing_a_triangle/Graphics_pipeline_basics/Render_passes)
