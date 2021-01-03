@@ -19,9 +19,26 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNING_FLAGS}")
 find_package(vulkan)
 find_package(glfw3 3.3.0 REQUIRED)
 
+get_filename_component(EXTERN "extern" ABSOLUTE)
+
+include_directories(include)
+
+#################################################################
+# External Dependencies
+#################################################################
+## fmt
+add_subdirectory("${EXTERN}/fmt")
+
+#################################################################
+# Internal Dependencies
+#################################################################
+## iutils 
+add_library(myutils INTERFACE)
+target_include_directories(myutils INTERFACE "${EXTERN}/fmt/include" "${EXTERN}/outcome")
+target_link_libraries(myutils INTERFACE fmt::fmt)
 
 add_executable(main src/main.cpp)
 
-target_link_libraries(main Vulkan::Vulkan glfw)
+target_link_libraries(main Vulkan::Vulkan glfw myutils)
 
 add_subdirectory(playground)

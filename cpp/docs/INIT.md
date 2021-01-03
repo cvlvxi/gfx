@@ -93,6 +93,15 @@
 	* [Subpass Description](#SubpassDescription)
 	* [Other attachment Types](#OtherattachmentTypes)
 * [Render Pass](#RenderPass)
+* [Drawing: Frame Buffers](#Drawing:FrameBuffers)
+	* [FrameBuffer contains](#FrameBuffercontains)
+	* [Creating FrameBuffers from ImageViews](#CreatingFrameBuffersfromImageViews)
+* [Command Buffers](#CommandBuffers)
+	* [Primary / Secondary command buffer?](#PrimarySecondarycommandbuffer)
+	* [Command Buffer Recording](#CommandBufferRecording)
+	* [Start Render Pass](#StartRenderPass)
+	* [Render Pass vkCmd - Begin Drawing Command](#RenderPassvkCmd-BeginDrawingCommand)
+	* [Ending the Render Pass Cmd](#EndingtheRenderPassCmd)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -1041,3 +1050,143 @@ if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCC
 ```
 
 - You will need to cleanup the pipeline layout and render pass 
+
+-----------------------------------------------------------
+
+## <a name='Drawing:FrameBuffers'></a>Drawing: Frame Buffers
+- Framebuffers contain all of the VKimageView objects that represent the attachments
+- The only attachment we have for the triangle is the `color attachment`
+- Which VKImageView to use depends on the image the `swap chain returns` for presentation 
+- So we can have a framebuffer for all images in the swap chain and use the one that corresponds to the retrieved image adt drawing 
+
+### <a name='FrameBuffercontains'></a>FrameBuffer contains
+
+```c++
+std::vector<VkFramebuffer> swapChainFramebuffers;
+```
+
+- We can createFramebuffers after creating the Graphics Pipeline
+
+### <a name='CreatingFrameBuffersfromImageViews'></a>Creating FrameBuffers from ImageViews
+
+```c++
+for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+    VkImageView attachments[] = {
+        swapChainImageViews[i]
+    };
+
+    VkFramebufferCreateInfo framebufferInfo{};
+    framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebufferInfo.renderPass = renderPass;
+    framebufferInfo.attachmentCount = 1;
+    framebufferInfo.pAttachments = attachments;
+    framebufferInfo.width = swapChainExtent.width;
+    framebufferInfo.height = swapChainExtent.height;
+    framebufferInfo.layers = 1;
+
+    if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create framebuffer!");
+    }
+}
+```
+
+-----------------------------------------------------------
+
+## <a name='CommandBuffers'></a>Command Buffers 
+- Vector of command buffers `VkCommandBuffer`
+- Size would be resized to swapChainFrameBuffers size `commandbuffers.resize(swapChainFramebuffers.size())`
+- Make a Command Buffer with `vkAllocateCommandBuffers`
+- Builder patter with `VkCommandBufferAllocateInfo`
+
+```c++
+VkCommandBufferAllocateInfo allocInfo{};
+allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+allocInfo.commandPool = commandPool;
+allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+allocInfo.commandBufferCount = (uint32_t) commandBuffers.size();
+
+if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+    throw std::runtime_error("failed to allocate command buffers!");
+}
+```
+
+### <a name='PrimarySecondarycommandbuffer'></a>Primary / Secondary command buffer?
+- Primary: Can be submitted to queue for executation but not called by other command buffers
+- Secondary: Cannot be submitted directly but can be called from primary command buffers
+
+### <a name='CommandBufferRecording'></a>Command Buffer Recording 
+- Begin with `vkBeginCommandBuffer`
+
+```c++
+for (size_t i = 0; i < commandBuffers.size(); i++) {
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = 0; // Optional
+    beginInfo.pInheritanceInfo = nullptr; // Optional
+
+    if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
+        throw std::runtime_error("failed to begin recording command buffer!");
+    }
+}
+```
+
+- flags is how we are going to use the command buffer
+
+```
+VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT: The command buffer will be rerecorded right after executing it once.
+VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT: This is a secondary command buffer that will be entirely within a single render pass.
+VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT: The command buffer can be resubmitted while it is also already pending execution.
+```
+
+- pInheritanceInfo - only relevant for `secondary command buffers`
+
+
+### <a name='StartRenderPass'></a>Start Render Pass 
+- Begin with `vkCmdBeginRenderPass` and configure with `VkRenderPassBeginInfo` struct
+
+```c++
+// Builder Struct
+VkRenderPassBeginInfo renderPassInfo{};
+renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+// Pass the renderPass and framebuffer
+renderPassInfo.renderPass = renderPass;
+renderPassInfo.framebuffer = swapChainFramebuffers[i];
+// Size of the render area
+// Defines where shader loads and stores and should match size of attachments
+renderPassInfo.renderArea.offset = {0, 0};
+renderPassInfo.renderArea.extent = swapChainExtent;
+// Clear color 
+VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+renderPassInfo.clearValueCount = 1;
+renderPassInfo.pClearValues = &clearColor;
+// Call cmd begin render pass
+vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+```
+
+### <a name='RenderPassvkCmd-BeginDrawingCommand'></a>Render Pass vkCmd - Begin Drawing Command
+
+We need to specify the commandbuffer and also bind the graphics pipeline 
+
+```c++
+vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+```
+
+vkCmdDraw Parameters
+
+```
+commandbuffer: commandbuffer
+vertexCount: Even though we don't have a vertex buffer, we technically still have 3 vertices to draw.
+instanceCount: Used for instanced rendering, use 1 if you're not doing that.
+firstVertex: Used as an offset into the vertex buffer, defines the lowest value of gl_VertexIndex.
+firstInstance: Used as an offset for instanced rendering, defines the lowest value of gl_InstanceIndex.
+```
+
+### <a name='EndingtheRenderPassCmd'></a>Ending the Render Pass Cmd
+
+```c++
+vkCmdEndRenderPass(commandBuffers[i]);
+if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
+    throw std::runtime_error("failed to record command buffer!");
+}
+```
