@@ -3,7 +3,7 @@
 
 int main() {
   VulkanApp app;
-
+  whereami();
   try {
     app.run();
   } catch (const std::exception &e) {
