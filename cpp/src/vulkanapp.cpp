@@ -68,10 +68,6 @@ void VulkanApp::cleanup() {
 
   vkDestroyDevice(device_, nullptr);
 
-  if (enableValidationLayers) {
-    DestroyDebugUtilsMessengerEXT(instance_, debugMessenger_, nullptr);
-  }
-
   vkDestroySurfaceKHR(instance_, surface_, nullptr);
   vkDestroyInstance(instance_, nullptr);
 
@@ -156,11 +152,6 @@ void VulkanApp::setupDebugMessenger() {
 
   VkDebugUtilsMessengerCreateInfoEXT createInfo;
   populateDebugMessengerCreateInfo(createInfo);
-
-  if (CreateDebugUtilsMessengerEXT(instance_, &createInfo, nullptr,
-                                   &debugMessenger_) != VK_SUCCESS) {
-    throw std::runtime_error("failed to set up debug messenger!");
-  }
 }
 
 void VulkanApp::createSurface() {
@@ -556,7 +547,7 @@ void VulkanApp::createCommandBuffers() {
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = swapChainExtent_;
 
-    VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+    VkClearValue clearColor{0.0f, 0.0f, 0.0f, 1.0f};
     renderPassInfo.clearValueCount = 1;
     renderPassInfo.pClearValues = &clearColor;
 
