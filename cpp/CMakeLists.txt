@@ -20,7 +20,7 @@ find_package(vulkan)
 find_package(glfw3 3.3.0 REQUIRED)
 
 get_filename_component(EXTERN "extern" ABSOLUTE)
-
+get_filename_component(INCLUDE "include" ABSOLUTE)
 include_directories(include)
 
 #################################################################

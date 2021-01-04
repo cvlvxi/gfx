@@ -1,5 +1,5 @@
 #pragma once
-
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <algorithm>
 #include <cstdint>
@@ -11,7 +11,7 @@
 #include <set>
 #include <stdexcept>
 #include <vector>
-#include <vulkan/vulkan.h>
+
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
@@ -61,7 +61,6 @@ struct SwapChainSupportDetails {
   std::vector<VkPresentModeKHR> presentModes;
 };
 
-namespace app {
 class VulkanApp {
 public:
   void run() {
@@ -108,8 +107,6 @@ private:
 
   void initWindow();
 
-  static void framebufferResizeCallback(GLFWwindow *window, int width,
-                                        int height);
   void initVulkan();
 
   void mainLoop();
@@ -172,7 +169,23 @@ private:
 
   bool checkValidationLayerSupport();
 
-  static std::vector<char> readFile(const std::string &filename);
+  static std::vector<char> readFile(const std::string &filename) {
+    std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+    if (!file.is_open()) {
+      throw std::runtime_error("failed to open file!");
+    }
+
+    size_t fileSize = (size_t)file.tellg();
+    std::vector<char> buffer(fileSize);
+
+    file.seekg(0);
+    file.read(buffer.data(), fileSize);
+
+    file.close();
+
+    return buffer;
+  }
 
   static VKAPI_ATTR VkBool32 VKAPI_CALL
   debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -183,5 +196,10 @@ private:
 
     return VK_FALSE;
   }
+
+  static void framebufferResizeCallback(GLFWwindow *window, int width,
+                                        int height) {
+    auto app = reinterpret_cast<VulkanApp *>(glfwGetWindowUserPointer(window));
+    app->framebufferResized_ = true;
+  }
 };
-} // namespace app
