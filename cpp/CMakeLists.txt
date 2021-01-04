@@ -37,8 +37,5 @@ add_library(myutils INTERFACE)
 target_include_directories(myutils INTERFACE "${EXTERN}/fmt/include" "${EXTERN}/outcome")
 target_link_libraries(myutils INTERFACE fmt::fmt)
 
-add_executable(main src/main.cpp)
-
-target_link_libraries(main Vulkan::Vulkan glfw myutils)
-
+add_subdirectory(src)
 add_subdirectory(playground)
