@@ -106,7 +106,6 @@ private:
     createCommandBuffers();
   }
 
-
   void createInstance() {
     if (enableValidationLayers && !checkValidationLayerSupport()) {
       throw std::runtime_error(
@@ -148,7 +147,6 @@ private:
     }
   }
 
-
   void populateDebugMessengerCreateInfo(
       VkDebugUtilsMessengerCreateInfoEXT &createInfo) {
     createInfo = {};
@@ -162,7 +160,6 @@ private:
                              VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     createInfo.pfnUserCallback = debugCallback;
   }
-
 
   void setupDebugMessenger() {
     if (!enableValidationLayers)
@@ -206,7 +203,6 @@ private:
       throw std::runtime_error("failed to find a suitable GPU!");
     }
   }
-
 
   void createLogicalDevice() {
     QueueFamilyIndices indices = findQueueFamilies(physicalDevice_);
@@ -440,7 +436,6 @@ private:
     viewportState.scissorCount = 1;
     viewportState.pScissors = &scissor;
 
-
     VkPipelineRasterizationStateCreateInfo rasterizer{};
     rasterizer.sType =
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -626,8 +621,8 @@ private:
 
     uint32_t imageIndex;
     VkResult result = vkAcquireNextImageKHR(
-        device_, swapChain, UINT64_MAX, imageAvailableSemaphores_[currentFrame_],
-        VK_NULL_HANDLE, &imageIndex);
+        device_, swapChain, UINT64_MAX,
+        imageAvailableSemaphores_[currentFrame_], VK_NULL_HANDLE, &imageIndex);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
       recreateswapChain_();
@@ -830,7 +825,8 @@ private:
       }
 
       VkBool32 presentSupport = false;
-      vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface_, &presentSupport);
+      vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface_,
+                                           &presentSupport);
 
       if (presentSupport) {
         indices.presentFamily = i;
@@ -860,7 +856,6 @@ private:
 
     return extensions;
   }
-
 
   bool checkValidationLayerSupport() {
     uint32_t layerCount;

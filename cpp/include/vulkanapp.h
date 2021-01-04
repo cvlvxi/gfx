@@ -1,16 +1,16 @@
 #pragma once
 
 #include <GLFW/glfw3.h>
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
 #include <algorithm>
-#include <vector>
-#include <cstring>
-#include <cstdlib>
 #include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <iostream>
 #include <optional>
 #include <set>
+#include <stdexcept>
+#include <vector>
 #include <vulkan/vulkan.h>
 
 const uint32_t WIDTH = 800;
@@ -108,7 +108,8 @@ private:
 
   void initWindow();
 
-  static void framebufferResizeCallback(GLFWwindow *window, int width, int height);
+  static void framebufferResizeCallback(GLFWwindow *window, int width,
+                                        int height);
   void initVulkan();
 
   void mainLoop();
@@ -120,7 +121,8 @@ private:
 
   void createInstance();
 
-  void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+  void populateDebugMessengerCreateInfo(
+      VkDebugUtilsMessengerCreateInfoEXT &createInfo);
 
   void setupDebugMessenger();
 
@@ -150,9 +152,11 @@ private:
 
   VkShaderModule createShaderModule(const std::vector<char> &code);
 
-  VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
+  VkSurfaceFormatKHR chooseSwapSurfaceFormat(
+      const std::vector<VkSurfaceFormatKHR> &availableFormats);
 
-  VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
+  VkPresentModeKHR chooseSwapPresentMode(
+      const std::vector<VkPresentModeKHR> &availablePresentModes);
 
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
