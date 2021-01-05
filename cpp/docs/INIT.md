@@ -102,6 +102,9 @@
 	* [Start Render Pass](#StartRenderPass)
 	* [Render Pass vkCmd - Begin Drawing Command](#RenderPassvkCmd-BeginDrawingCommand)
 	* [Ending the Render Pass Cmd](#EndingtheRenderPassCmd)
+* [Vertex Buffers](#VertexBuffers)
+	* [Need to specify the `Binding Description`](#NeedtospecifytheBindingDescription)
+	* [Attribute Description](#AttributeDescription)
 
 <!-- vscode-markdown-toc-config
 	numbering=false
@@ -1189,4 +1192,55 @@ vkCmdEndRenderPass(commandBuffers[i]);
 if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
     throw std::runtime_error("failed to record command buffer!");
 }
+```
+
+
+-----------------------------------------------------------
+
+## <a name='VertexBuffers'></a>Vertex Buffers
+
+We can now create our triangle via a struct like so with glm 
+
+```c++
+struct Vertex {
+    glm::vec2 pos;
+    glm::vec3 color;
+};
+```
+
+### <a name='NeedtospecifytheBindingDescription'></a>Need to specify the `Binding Description`
+
+```c++
+VkVertexInputBindingDescription bindingDescription{}; 
+bindingDescription.binding = 0;								// Specifies the index of the binding
+bindingDescription.stride = sizeof(Vertex);					// Number of bytes for a single entry
+bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;	// Move after next instance / data 
+```
+
+### <a name='AttributeDescription'></a>Attribute Description
+
+```c++
+static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
+    std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+
+    return attributeDescriptions;
+}
+```
+- This will describe how to extract a vertex attribute from the `Vertex` data
+- Curtrently we have color and position
+
+```c++
+attributeDescriptions[0].binding = 0;                       // Which has the per vertex-data 
+attributeDescriptions[0].location = 0;                      // Location refers to the location param in the shader code
+attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;  // Whats the type for the data attribute since we're vec2 we can use R32G32
+attributeDescriptions[0].offset = offsetof(Vertex, pos);
+```
+
+- Common datas types
+
+```c++
+float: VK_FORMAT_R32_SFLOAT
+vec2: VK_FORMAT_R32G32_SFLOAT
+vec3: VK_FORMAT_R32G32B32_SFLOAT
+vec4: VK_FORMAT_R32G32B32A32_SFLOAT
 ```
