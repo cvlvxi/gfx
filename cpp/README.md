@@ -14,3 +14,12 @@ export VK_LAYER_PATH
 VK_ICD_FILENAMES="$VULKAN_SDK/share/vulkan/icd.d/MoltenVK_icd.json"
 export VK_ICD_FILENAMES
 ```
+
+
+# Brew requirements
+
+```
+brew install glm
+brew install glfw3
+```
+

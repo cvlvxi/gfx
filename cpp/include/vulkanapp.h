@@ -11,6 +11,7 @@
 #include <set>
 #include <stdexcept>
 #include <vector>
+#include <glm/glm.hpp>
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
@@ -85,6 +86,7 @@ private:
   void initVulkan();
 
   void mainLoop();
+
   void cleanupSwapChain();
 
   void cleanup();
