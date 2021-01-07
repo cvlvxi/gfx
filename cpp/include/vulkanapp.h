@@ -6,12 +6,12 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <glm/glm.hpp>
 #include <iostream>
 #include <optional>
 #include <set>
 #include <stdexcept>
 #include <vector>
-#include <glm/glm.hpp>
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
@@ -81,28 +81,9 @@ private:
 
   bool framebufferResized_ = false;
 
-  void initWindow();
+  bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 
-  void initVulkan();
-
-  void mainLoop();
-
-  void cleanupSwapChain();
-
-  void cleanup();
-
-  void recreateSwapChain();
-
-  void createInstance();
-
-  void populateDebugMessengerCreateInfo(
-      VkDebugUtilsMessengerCreateInfoEXT &createInfo);
-
-  void setupDebugMessenger();
-
-  void createSurface();
-
-  void pickPhysicalDevice();
+  bool checkValidationLayerSupport();
 
   void createLogicalDevice();
 
@@ -122,7 +103,13 @@ private:
 
   void createSyncObjects();
 
-  void drawFrame();
+  void cleanupSwapChain();
+
+  void cleanup();
+
+  void createInstance();
+
+  void createSurface();
 
   VkShaderModule createShaderModule(const std::vector<char> &code);
 
@@ -134,17 +121,42 @@ private:
 
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
 
-  SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+  static VKAPI_ATTR VkBool32 VKAPI_CALL
+  debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                VkDebugUtilsMessageTypeFlagsEXT messageType,
+                const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
+                void *pUserData) {
+    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
-  bool isDeviceSuitable(VkPhysicalDevice device);
+    return VK_FALSE;
+  }
 
-  bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+  void drawFrame();
 
   QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
+  static void framebufferResizeCallback(GLFWwindow *window, int width,
+                                        int height) {
+    auto app = reinterpret_cast<VulkanApp *>(glfwGetWindowUserPointer(window));
+    app->framebufferResized_ = true;
+  }
+
   std::vector<const char *> getRequiredExtensions();
 
-  bool checkValidationLayerSupport();
+  void initWindow();
+
+  void initVulkan();
+
+  bool isDeviceSuitable(VkPhysicalDevice device);
+
+  void mainLoop();
+
+  void pickPhysicalDevice();
+
+  void populateDebugMessengerCreateInfo(
+      VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+
+  SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
   static std::vector<char> readFile(const std::string &filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -164,19 +176,26 @@ private:
     return buffer;
   }
 
-  static VKAPI_ATTR VkBool32 VKAPI_CALL
-  debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                VkDebugUtilsMessageTypeFlagsEXT messageType,
-                const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-                void *pUserData) {
-    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+  void recreateSwapChain();
 
-    return VK_FALSE;
-  }
+  void setupDebugMessenger();
 
-  static void framebufferResizeCallback(GLFWwindow *window, int width,
-                                        int height) {
-    auto app = reinterpret_cast<VulkanApp *>(glfwGetWindowUserPointer(window));
-    app->framebufferResized_ = true;
-  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 };
