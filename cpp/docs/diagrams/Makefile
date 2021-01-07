@@ -1,2 +1,2 @@
 build:
-	mmdc -t forest -i mermaid -o out.png -b transparent -s 3
+	(mmdc -t forest -i mermaid -o out.png -s 5 -b transparent  && open out.png)

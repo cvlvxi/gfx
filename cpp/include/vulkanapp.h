@@ -179,23 +179,4 @@ private:
   void recreateSwapChain();
 
   void setupDebugMessenger();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 };
