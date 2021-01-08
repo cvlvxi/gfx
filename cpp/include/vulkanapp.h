@@ -49,36 +49,28 @@ public:
 
 private:
   GLFWwindow *window_;
-
   VkInstance instance_;
   VkSurfaceKHR surface_;
-
   VkPhysicalDevice physicalDevice_ = VK_NULL_HANDLE;
   VkDevice device_;
-
   VkQueue graphicsQueue_;
   VkQueue presentQueue_;
-
   VkSwapchainKHR swapChain_;
   std::vector<VkImage> swapChainImages_;
   VkFormat swapChainImageFormat_;
   VkExtent2D swapChainExtent_;
   std::vector<VkImageView> swapChainImageViews_;
   std::vector<VkFramebuffer> swapChainFramebuffers_;
-
   VkRenderPass renderPass_;
   VkPipelineLayout pipelineLayout_;
   VkPipeline graphicsPipeline_;
-
   VkCommandPool commandPool_;
   std::vector<VkCommandBuffer> commandBuffers_;
-
   std::vector<VkSemaphore> imageAvailableSemaphores_;
   std::vector<VkSemaphore> renderFinishedSemaphores_;
   std::vector<VkFence> inFlightFences_;
   std::vector<VkFence> imagesInFlight_;
   size_t currentFrame_ = 0;
-
   bool framebufferResized_ = false;
 
   bool checkDeviceExtensionSupport(VkPhysicalDevice device);
