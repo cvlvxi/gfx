@@ -12,6 +12,7 @@ export default class GfxPipeline {
         this.vertShader = this.createShader(this.gl.VERTEX_SHADER, vertShaderSrc);
         this.fragShader = this.createShader(this.gl.FRAGMENT_SHADER, fragShaderSrc);
         this.program = this.createProgram(this.vertShader, this.fragShader);
+        this.createBuffers()
         console.log("Done")
 
     }
@@ -38,4 +39,34 @@ export default class GfxPipeline {
         console.log(this.gl.getProgramInfoLog(program));
         this.gl.deleteProgram(program);1
     }
+
+    createBuffers() {
+        let posAttribLocation: number = this.gl.getAttribLocation(this.program, "a_position")
+        let posBuffer: WebGLBuffer = this.gl.createBuffer();
+        // Add Global Bind Point
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, posBuffer);
+        // three 2d points
+        var positions = [
+            0, 0,
+            0, 0.5,
+            0.7, 0,
+        ];
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(positions), this.gl.STATIC_DRAW);
+
+        // Vertex Array Object
+        let vao = this.gl.createVertexArray();
+        this.gl.bindVertexArray(vao);
+        this.gl.enableVertexAttribArray(posAttribLocation);
+
+        var size = 2;          // 2 components per iteration
+        var type = this.gl.FLOAT;   // the data is 32bit floats
+        var normalize = false; // don't normalize the data
+        var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+        var offset = 0;        // start at the beginning of the buffer
+        this.gl.vertexAttribPointer(
+            posAttribLocation, size, type, normalize, stride, offset)
+    }
+
+
+
 }
