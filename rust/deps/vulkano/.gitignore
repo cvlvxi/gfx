@@ -1,5 +1,0 @@
-target
-/Cargo.lock
-.cargo
-examples/**/triangle.png
-examples/**/mandelbrot.png
