@@ -1,3 +1,0 @@
-[submodule "cpp-vulkan/extern/fmt"]
-	path = cpp-vulkan/extern/fmt
-	url = https://github.com/fmtlib/fmt.git
