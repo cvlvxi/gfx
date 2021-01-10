@@ -2,9 +2,13 @@
 %% Start Diagram 
 
 stateDiagram-v2
-    AppRun
+    [*] --> Still
+    Still --> [*]
 
-
+    Still --> Moving
+    Moving --> Still
+    Moving --> Crash
+    Crash --> [*]
 
 %% End Diagram
 ```

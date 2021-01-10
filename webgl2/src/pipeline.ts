@@ -14,7 +14,6 @@ export default class GfxPipeline {
         this.program = this.createProgram(this.vertShader, this.fragShader);
         this.createBuffers()
         console.log("Done")
-
     }
 
     createShader(type: number, source: string): WebGLShader | undefined {
