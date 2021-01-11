@@ -5,7 +5,6 @@ import {
   ProgramManager,
   Timeline,
 } from "@luma.gl/engine";
-
 import { Buffer, readPixelsToArray } from "@luma.gl/webgl";
 import { cssToDevicePixels, setParameters } from "@luma.gl/gltools";
 import {
