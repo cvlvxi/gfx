@@ -12,15 +12,30 @@ import {
   picking as pickingBase,
 } from "@luma.gl/shadertools";
 import { Matrix4, radians } from "math.gl";
-import { getRandom } from "./utils.js";
+import { instrumentGLContext } from "@luma.gl/gltools";
 
 const INFO_HTML = `
-<p>
-Cube drawn with <b>instanced rendering</b>.
-<p>
-A luma.gl <code>Cube</code>, rendering 65,536 instances in a
-single GPU draw call using instanced vertex attributes.
-`;
+  <p>
+  Cube drawn with <b>instanced rendering</b>.
+  <p>
+  A luma.gl <code>Cube</code>, rendering 65,536 instances in a
+  single GPU draw call using instanced vertex attributes.
+  `;
+
+// Create a deterministic pseudorandom number generator
+function getRandom() {
+  let s = 1;
+  let c = 1;
+  return () => {
+    s = Math.sin(c * 17.23);
+    c = Math.cos(s * 27.92);
+    return fract(Math.abs(s * c) * 1432.71);
+  };
+}
+
+function fract(n) {
+  return n - Math.floor(n);
+}
 
 const random = getRandom();
 
@@ -70,50 +85,50 @@ class InstancedCube extends Model {
       }
     }
 
-    const colors = new Float32Array(SIDE * SIDE * 3).map((n, i) =>
+    const colors = new Float32Array(SIDE * SIDE * 3).map(() =>
       random() * 0.75 + 0.25
     );
 
     const vs = `\
-attribute float instanceSizes;
-attribute vec3 positions;
-attribute vec3 normals;
-attribute vec2 instanceOffsets;
-attribute vec3 instanceColors;
-attribute vec2 instancePickingColors;
-
-uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProjection;
-uniform float uTime;
-
-varying vec3 color;
-
-void main(void) {
-  vec3 normal = vec3(uModel * vec4(normals, 1.0));
-
-  // Set up data for modules
-  color = instanceColors;
-  project_setNormal(normal);
-  vec4 pickColor = vec4(0., instancePickingColors, 1.0);
-  MY_SHADER_HOOK_pickColor(pickColor);
-
-  // Vertex position (z coordinate undulates with time), and model rotates around center
-  float delta = length(instanceOffsets);
-  vec4 offset = vec4(instanceOffsets, sin((uTime + delta) * 0.1) * 16.0, 0);
-  gl_Position = uProjection * uView * (uModel * vec4(positions * instanceSizes, 1.0) + offset);
-}
-`;
+  attribute float instanceSizes;
+  attribute vec3 positions;
+  attribute vec3 normals;
+  attribute vec2 instanceOffsets;
+  attribute vec3 instanceColors;
+  attribute vec2 instancePickingColors;
+  
+  uniform mat4 uModel;
+  uniform mat4 uView;
+  uniform mat4 uProjection;
+  uniform float uTime;
+  
+  varying vec3 color;
+  
+  void main(void) {
+    vec3 normal = vec3(uModel * vec4(normals, 1.0));
+  
+    // Set up data for modules
+    color = instanceColors;
+    project_setNormal(normal);
+    vec4 pickColor = vec4(0., instancePickingColors, 1.0);
+    MY_SHADER_HOOK_pickColor(pickColor);
+  
+    // Vertex position (z coordinate undulates with time), and model rotates around center
+    float delta = length(instanceOffsets);
+    vec4 offset = vec4(instanceOffsets, sin((uTime + delta) * 0.1) * 16.0, 0);
+    gl_Position = uProjection * uView * (uModel * vec4(positions * instanceSizes, 1.0) + offset);
+  }
+  `;
     const fs = `\
-precision highp float;
-
-varying vec3 color;
-
-void main(void) {
-  gl_FragColor = vec4(color, 1.);
-  MY_SHADER_HOOK_fragmentColor(gl_FragColor);
-}
-`;
+  precision highp float;
+  
+  varying vec3 color;
+  
+  void main(void) {
+    gl_FragColor = vec4(color, 1.);
+    MY_SHADER_HOOK_fragmentColor(gl_FragColor);
+  }
+  `;
 
     const offsetsBuffer = new Buffer(gl, offsets);
     const colorsBuffer = new Buffer(gl, colors);
@@ -158,7 +173,7 @@ export default class AppAnimationLoop extends AnimationLoop {
     return INFO_HTML;
   }
 
-  onInitialize({ gl, _animationLoop }) {
+  onInitialize({ gl }) {
     setParameters(gl, {
       clearColor: [0, 0, 0, 1],
       clearDepth: 1,
@@ -230,7 +245,7 @@ export default class AppAnimationLoop extends AnimationLoop {
     this.cube.draw();
   }
 
-  onFinalize({ gl }) {
+  onFinalize() {
     this.cube.delete();
   }
 }
@@ -263,8 +278,7 @@ function pickInstance(gl, pickX, pickY, model, framebuffer) {
   }
 }
 
-/* global window */
-if (typeof window !== "undefined" && !window.website) {
-  const animationLoop = new AppAnimationLoop();
-  animationLoop.start();
-}
+const canvas = document.getElementById("helloworld");
+let gl = instrumentGLContext(canvas.getContext("webgl"));
+let animationLoop = new AppAnimationLoop({ gl: gl });
+animationLoop.start({ canvas: "helloworld" });
