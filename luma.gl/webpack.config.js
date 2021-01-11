@@ -1,15 +1,16 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
-  mode: 'development',
-  entry: './index.js',
+  mode: "development",
+  entry: "./src/index.js",
+  devtool: "inline-source-map",
   plugins: [
     new HtmlWebpackPlugin({
-      title: 'luma.gl Demo',
+      title: "luma.gl",
     }),
   ],
   output: {
-    filename: 'bundle.js'
+    filename: "bundle.js",
   },
 };
