@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+      "lib": ["ESNext", "DOM"],
+      "module": "ESNext",
+      "moduleResolution": "Node",
+      "noImplicitAny": true,
+      "removeComments": false,
+      "preserveConstEnums": true,
+      "sourceMap": true,
+      "outDir": "./dist/"
+    },
+    "include": ["src/**/*"]
+}
