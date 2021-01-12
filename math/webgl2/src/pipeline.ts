@@ -43,9 +43,12 @@ export class Model {
     positionAttributeName: string = "a_position",
   ) {
     this.gl = gl;
+    this.positionAttributeName = positionAttributeName;
+    if (!vertexSrc.includes(positionAttributeName)) {
+      throw new Error(`${positionAttributeName} must exist in vertexSrc`);
+    }
     this.vs = this.createShader(gl.VERTEX_SHADER, vertexSrc);
     this.fs = this.createShader(gl.FRAGMENT_SHADER, fragSrc);
-    this.positionAttributeName = positionAttributeName;
     this.buf = buf;
   }
 
@@ -103,6 +106,7 @@ export class GfxPipeline {
   onWindowResize() {
     this.gl.canvas.width = window.innerWidth;
     this.gl.canvas.height = window.innerHeight;
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
   }
 
   setup() {
