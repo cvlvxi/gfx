@@ -1,4 +1,5 @@
-import GfxPipeline from "./pipeline";
+import { Buffer, GfxPipeline, Model } from "./pipeline";
+import { fragShaderSrc, vertShaderSrc } from "./shaders";
 import { gl } from "./globals";
 
 if (!gl) {
@@ -18,11 +19,23 @@ async function main(pipeline: GfxPipeline) {
   }
 }
 
-let gfxPipeline = new GfxPipeline(gl);
+let positions = [
+  0,
+  0,
+  0,
+  0.5,
+  0.7,
+  0,
+];
+
+let b = new Buffer(gl, positions);
+let m = new Model(gl, vertShaderSrc, fragShaderSrc, b);
+let gfxPipeline = new GfxPipeline(gl, m);
 
 window.onresize = () => {
   gfxPipeline.onWindowResize();
 };
 
-main(gfxPipeline);
-console.log("Done");
+// main(gfxPipeline);
+// console.log("Done");
+gfxPipeline.draw();

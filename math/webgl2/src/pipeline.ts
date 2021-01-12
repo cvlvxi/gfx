@@ -1,28 +1,57 @@
-import { fragShaderSrc, vertShaderSrc } from "./shaders";
+export class Buffer {
+  buf: WebGLBuffer | null;
+  drawType: GLenum;
+  vertexCount: number;
+  type: GLenum;
+  normalize: boolean;
+  stride: number;
+  offset: number;
 
-export default class GfxPipeline {
+  constructor(
+    gl: WebGL2RenderingContext,
+    data: number[],
+    dataType: GLenum = gl.FLOAT,
+    vertexCount: number = 2, // 2 components per iteration
+    drawType: GLenum = gl.STATIC_DRAW,
+    normalize: boolean = false,
+    stride: number = 0, // move forward size * sizeof(type) each iteration
+    offset: number = 0, // start at beginning of buffer
+  ) {
+    this.buf = gl.createBuffer();
+    this.drawType = drawType;
+    let arr: Float32Array;
+    if (dataType == gl.FLOAT) {
+      arr = new Float32Array(data);
+    } else {
+      throw new Error("Cannot handle dataType");
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+    gl.bufferData(gl.ARRAY_BUFFER, arr, this.drawType);
+    this.normalize = normalize;
+    this.stride = stride;
+    this.offset = offset;
+  }
+}
+
+export class Model {
   gl: WebGL2RenderingContext;
-  vertShader: WebGLShader | undefined;
-  fragShader: WebGLShader | undefined;
-  program: WebGLProgram | undefined;
+  vs: WebGLShader;
+  fs: WebGLShader;
+  positionAttributeName: string;
+  buf: Buffer;
 
-  constructor(gl: WebGL2RenderingContext) {
+  constructor(
+    gl: WebGL2RenderingContext,
+    vertexSrc: string,
+    fragSrc: string,
+    buf: Buffer,
+    positionAttributeName: string = "a_position",
+  ) {
     this.gl = gl;
-    this.setup();
-  }
-
-  onWindowResize() {
-    this.gl.canvas.width = window.innerWidth;
-    this.gl.canvas.height = window.innerHeight;
-    console.log("HERE");
-  }
-
-  setup() {
-    this.vertShader = this.createShader(this.gl.VERTEX_SHADER, vertShaderSrc);
-    this.fragShader = this.createShader(this.gl.FRAGMENT_SHADER, fragShaderSrc);
-    this.program = this.createProgram(this.vertShader, this.fragShader);
-    this.createBuffers();
-    console.log("Done with Setup");
+    this.vs = this.createShader(gl.VERTEX_SHADER, vertexSrc);
+    this.fs = this.createShader(gl.FRAGMENT_SHADER, fragSrc);
+    this.positionAttributeName = positionAttributeName;
+    this.buf = buf;
   }
 
   createShader(type: number, source: string): WebGLShader | undefined {
@@ -35,66 +64,79 @@ export default class GfxPipeline {
     console.log(this.gl.getShaderInfoLog(shader));
     this.gl.deleteShader(shader);
   }
+}
 
-  createProgram(
-    vertShader: WebGLShader,
-    fragShader: WebGLShader,
-  ): WebGLProgram | undefined {
+export class GfxPipeline {
+  gl: WebGL2RenderingContext;
+  m: Model;
+  program: WebGLProgram | null;
+  positionAttribIndex: GLuint;
+  vao: WebGLVertexArrayObject | null;
+
+  constructor(gl: WebGL2RenderingContext, m: Model) {
+    this.gl = gl;
+    this.m = m;
+    this.setup();
+  }
+
+  createProgram(model: Model): WebGLProgram | undefined {
     let program: WebGLProgram = this.gl.createProgram();
-    this.gl.attachShader(program, vertShader);
-    this.gl.attachShader(program, fragShader);
+    this.gl.attachShader(program, model.vs);
+    this.gl.attachShader(program, model.fs);
     this.gl.linkProgram(program);
+    this.positionAttribIndex = this.gl.getAttribLocation(
+      program,
+      model.positionAttributeName,
+    );
     if (this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
       return program;
     }
     console.log(this.gl.getProgramInfoLog(program));
     this.gl.deleteProgram(program);
-    1;
-  }
-
-  createBuffers() {
-    let posAttribLocation: number = this.gl.getAttribLocation(
-      this.program,
-      "a_position",
-    );
-    let posBuffer: WebGLBuffer = this.gl.createBuffer();
-    // Add Global Bind Point
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, posBuffer);
-    // three 2d points
-    var positions = [
-      0,
-      0,
-      0,
-      0.5,
-      0.7,
-      0,
-    ];
-    this.gl.bufferData(
-      this.gl.ARRAY_BUFFER,
-      new Float32Array(positions),
-      this.gl.STATIC_DRAW,
-    );
-
-    // Vertex Array Object
-    let vao = this.gl.createVertexArray();
-    this.gl.bindVertexArray(vao);
-    this.gl.enableVertexAttribArray(posAttribLocation);
-
-    var size = 2; // 2 components per iteration
-    var type = this.gl.FLOAT; // the data is 32bit floats
-    var normalize = false; // don't normalize the data
-    var stride = 0; // 0 = move forward size * sizeof(type) each iteration to get the next position
-    var offset = 0; // start at the beginning of the buffer
-    this.gl.vertexAttribPointer(
-      posAttribLocation,
-      size,
-      type,
-      normalize,
-      stride,
-      offset,
-    );
   }
 
   draw() {
+    // draw
+    let primitiveType = this.gl.TRIANGLES;
+    let offset = 0;
+    let count = 3;
+    this.gl.drawArrays(primitiveType, offset, count);
+  }
+
+  onWindowResize() {
+    this.gl.canvas.width = window.innerWidth;
+    this.gl.canvas.height = window.innerHeight;
+  }
+
+  setup() {
+    this.program = this.createProgram(this.m);
+    // Enable the model's positionAttribIndex
+    this.setupAttributes();
+    this.setupView();
+    this.gl.useProgram(this.program);
+    this.gl.bindVertexArray(this.vao);
+  }
+
+  setupAttributes() {
+    console.log(this.m.buf);
+    this.vao = this.gl.createVertexArray();
+    this.gl.bindVertexArray(this.vao);
+    this.gl.enableVertexAttribArray(this.positionAttribIndex);
+    this.gl.vertexAttribPointer(
+      this.positionAttribIndex,
+      this.m.buf.vertexCount,
+      this.m.buf.type,
+      this.m.buf.normalize,
+      this.m.buf.stride,
+      this.m.buf.offset,
+    );
+  }
+
+  setupView() {
+    // Tell WebGL how to convert from clip space to pixels
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+    // Clear the canvas
+    this.gl.clearColor(0, 0, 0, 0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 }
