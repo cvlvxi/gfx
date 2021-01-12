@@ -1,3 +1,3 @@
-import Trig from "./trig";
+import { drawAxis } from "./axis";
 
-let t = new Trig();
+drawAxis();
