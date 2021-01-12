@@ -213,15 +213,6 @@ export default class AppAnimationLoop extends AnimationLoop {
     const { timeChannel, eyeXChannel, eyeYChannel, eyeZChannel } =
       timelineChannels;
 
-    if (_mousePosition) {
-      // use the center pixel location in device pixel range
-      const devicePixels = cssToDevicePixels(gl, _mousePosition);
-      const deviceX = devicePixels.x + Math.floor(devicePixels.width / 2);
-      const deviceY = devicePixels.y + Math.floor(devicePixels.height / 2);
-
-      pickInstance(gl, deviceX, deviceY, this.cube, framebuffer);
-    }
-
     // Draw the cubes
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     this.cube.setUniforms({

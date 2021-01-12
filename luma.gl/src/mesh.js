@@ -1,5 +1,5 @@
-import { CubeGeometry, Model, ProgramManager } from "@luma.gl/engine";
-import { Buffer } from "@luma.gl/webgl";
+import { Model, ProgramManager, SphereGeometry } from "@luma.gl/engine";
+import { Buffer, readPixelsToArray } from "@luma.gl/webgl";
 import { getRandom } from "./utils.js";
 import {
   dirlight as dirlightBase,
@@ -31,7 +31,7 @@ const dirlight = Object.assign(
   dirlightBase,
 );
 
-function pickInstance(gl, pickX, pickY, model, framebuffer) {
+export function pickInstance(gl, pickX, pickY, model, framebuffer) {
   framebuffer.clear({ color: true, depth: true });
   // Render picking colors
   /* eslint-disable camelcase */
@@ -147,7 +147,7 @@ export class InstancedCube extends Model {
         modules: [dirlight, picking],
         isInstanced: 1,
         instanceCount: SIDE * SIDE,
-        geometry: new CubeGeometry(),
+        geometry: new SphereGeometry({ radius: 2 }),
         attributes: {
           instanceSizes: new Float32Array([1]), // Constant attribute
           instanceOffsets: [offsetsBuffer, { divisor: 1 }],

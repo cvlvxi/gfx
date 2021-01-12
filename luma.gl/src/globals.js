@@ -1,1 +1,1 @@
-export const SIDE = 256;
+export const SIDE = 64;
