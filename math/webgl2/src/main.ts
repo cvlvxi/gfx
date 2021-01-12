@@ -1,6 +1,35 @@
 import { Buffer, GfxPipeline, Model } from "./pipeline";
-import { fragShaderSrc, vertShaderSrc } from "./shaders";
 import { gl } from "./globals";
+
+var vertexShaderSource = `#version 300 es
+
+// an attribute is an input (in) to a vertex shader.
+// It will receive data from a buffer
+in vec4 a_position;
+
+// all shaders have a main function
+void main() {
+
+  // gl_Position is a special variable a vertex shader
+  // is responsible for setting
+  gl_Position = a_position;
+}
+`;
+
+var fragmentShaderSource = `#version 300 es
+
+// fragment shaders don't have a default precision so we need
+// to pick one. highp is a good default. It means "high precision"
+precision highp float;
+
+// we need to declare an output for the fragment shader
+out vec4 outColor;
+
+void main() {
+  // Just set the output to a constant redish-purple
+  outColor = vec4(1, 0, 0.5, 1);
+}
+`;
 
 if (!gl) {
   console.log("Could not find gl");
@@ -28,8 +57,8 @@ let positions = [
   0,
 ];
 
-let b = new Buffer(gl, positions);
-let m = new Model(gl, vertShaderSrc, fragShaderSrc, b);
+let b = new Buffer(gl, new Float32Array(positions));
+let m = new Model(gl, vertexShaderSource, fragmentShaderSource, b);
 let gfxPipeline = new GfxPipeline(gl, m);
 
 window.onresize = () => {
@@ -37,5 +66,5 @@ window.onresize = () => {
 };
 
 // main(gfxPipeline);
-// console.log("Done");
 gfxPipeline.draw();
+console.log("Done");

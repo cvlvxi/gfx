@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use strict";
 
 var vertexShaderSource = `#version 300 es
@@ -61,7 +62,7 @@ function createProgram(gl, vertexShader, fragmentShader) {
 
 function main() {
   // Get A WebGL context
-  var canvas = document.querySelector("#c");
+  var canvas = document.querySelector("#canvas");
   var gl = canvas.getContext("webgl2");
   if (!gl) {
     return;
@@ -120,8 +121,6 @@ function main() {
     stride,
     offset,
   );
-
-  webglUtils.resizeCanvasToDisplaySize(gl.canvas);
 
   // Tell WebGL how to convert from clip space to pixels
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);

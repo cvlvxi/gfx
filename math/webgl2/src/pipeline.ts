@@ -1,16 +1,15 @@
 export class Buffer {
   buf: WebGLBuffer | null;
+  type: GLenum;
   drawType: GLenum;
   vertexCount: number;
-  type: GLenum;
   normalize: boolean;
   stride: number;
   offset: number;
 
   constructor(
     gl: WebGL2RenderingContext,
-    data: number[],
-    dataType: GLenum = gl.FLOAT,
+    data: Float32Array,
     vertexCount: number = 2, // 2 components per iteration
     drawType: GLenum = gl.STATIC_DRAW,
     normalize: boolean = false,
@@ -18,18 +17,14 @@ export class Buffer {
     offset: number = 0, // start at beginning of buffer
   ) {
     this.buf = gl.createBuffer();
+    this.vertexCount = vertexCount;
     this.drawType = drawType;
-    let arr: Float32Array;
-    if (dataType == gl.FLOAT) {
-      arr = new Float32Array(data);
-    } else {
-      throw new Error("Cannot handle dataType");
-    }
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
-    gl.bufferData(gl.ARRAY_BUFFER, arr, this.drawType);
+    gl.bufferData(gl.ARRAY_BUFFER, data, this.drawType);
     this.normalize = normalize;
     this.stride = stride;
     this.offset = offset;
+    this.type = gl.FLOAT;
   }
 }
 
@@ -72,10 +67,12 @@ export class GfxPipeline {
   program: WebGLProgram | null;
   positionAttribIndex: GLuint;
   vao: WebGLVertexArrayObject | null;
+  debug: boolean;
 
-  constructor(gl: WebGL2RenderingContext, m: Model) {
+  constructor(gl: WebGL2RenderingContext, m: Model, debug: boolean = false) {
     this.gl = gl;
     this.m = m;
+    this.debug = debug;
     this.setup();
   }
 
@@ -118,10 +115,19 @@ export class GfxPipeline {
   }
 
   setupAttributes() {
-    console.log(this.m.buf);
     this.vao = this.gl.createVertexArray();
     this.gl.bindVertexArray(this.vao);
     this.gl.enableVertexAttribArray(this.positionAttribIndex);
+
+    if (this.debug) {
+      console.log("Checking vertexAttribPointer Attributes");
+      console.log(`positionAttribIndex: ${this.positionAttribIndex}`);
+      console.log(`size: ${this.m.buf.vertexCount}`);
+      console.log(`type: ${this.m.buf.type}`);
+      console.log(`normalize: ${this.m.buf.normalize}`);
+      console.log(`stride: ${this.m.buf.stride}`);
+      console.log(`offset: ${this.m.buf.offset}`);
+    }
     this.gl.vertexAttribPointer(
       this.positionAttribIndex,
       this.m.buf.vertexCount,
