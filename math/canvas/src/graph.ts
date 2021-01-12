@@ -24,17 +24,20 @@ export default class Graph {
     this.draw();
   }
 
+  get scale(): number {
+    // Maybe pick the min of width and height
+    // Just use one scale rather than two seperates ones since
+    // aspect ratio can make things wonky
+    return this.canvas.width / 2 / this.halfSize;
+  }
+
   draw() {
     ctx.save();
-    ctx.lineWidth = 0.1;
+    ctx.lineWidth = 2;
     let halfCanvasWidth = canvas.width / 2;
     let halfCanvasHeight = canvas.height / 2;
     ctx.translate(halfCanvasWidth, halfCanvasHeight);
-    ctx.scale(
-      halfCanvasWidth / this.halfSize,
-      halfCanvasHeight / this.halfSize,
-    );
-    let fontSize = 8 / (halfCanvasHeight / this.halfSize);
+    let fontSize = 12;
     ctx.font = `${fontSize}px sans-serif`;
     this.drawAxis();
     this.drawTick(true, true);
@@ -47,27 +50,42 @@ export default class Graph {
 
   drawTick(isNeg: boolean = false, isX: boolean = true) {
     // Draw the ticks
-    let inc: number = this.halfSize / this.numHalfBins;
+    let inc: number = (this.halfSize / this.numHalfBins);
 
-    let tickAmount = 0.5;
-    let currPos = 0;
+    let tickAmount = 5;
+    let currPosStr: number | null = null;
     for (let i of range(this.numHalfBins)) {
       ctx.beginPath();
-      if (!isNeg) {
-        currPos += inc;
-      } else {
-        currPos -= inc;
+      let currPos: number = i * inc;
+      let currPosStr = currPos;
+      currPos = currPos * this.scale;
+      if (isNeg) {
+        currPos = currPos * -1;
       }
+      console.log(currPos);
+
       if (!isX) {
-        ctx.moveTo(-tickAmount, currPos);
-        ctx.lineTo(tickAmount, currPos);
+        ctx.moveTo(
+          -tickAmount,
+          currPos,
+        );
+        ctx.lineTo(
+          tickAmount,
+          currPos,
+        );
         ctx.stroke();
-        ctx.fillText(currPos.toFixed(), 0, currPos);
+        ctx.fillText(currPosStr.toFixed(), 4, currPos);
       } else {
-        ctx.moveTo(currPos, -tickAmount);
-        ctx.lineTo(currPos, tickAmount);
+        ctx.moveTo(
+          currPos,
+          -tickAmount,
+        );
+        ctx.lineTo(
+          currPos,
+          tickAmount,
+        );
         ctx.stroke();
-        ctx.fillText(currPos.toFixed(), currPos, 0);
+        ctx.fillText(currPosStr.toFixed(), currPos, -5);
       }
     }
   }
