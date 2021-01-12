@@ -1,3 +1,9 @@
-import { drawAxis } from "./axis";
+import Graph from "./graph";
+import { canvas, ctx, nextFrame } from "./globals";
 
-drawAxis();
+let g = new Graph(canvas, ctx);
+window.onresize = () => {
+  g.onWindowResize();
+};
+
+g.draw();
