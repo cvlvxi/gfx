@@ -22,7 +22,8 @@ void main() {
   // gl_Position is a special variable a vertex shader
   // is responsible for setting
   // gl_Position = a_position;
-  gl_Position = vec4((u_matrix * vec3(a_position, 1)).xy, 0, 1);
+  // gl_Position = vec4((u_matrix * vec3(a_position, 1)).xy, 0, 1);
+  gl_Position = vec4(u_matrix * vec3(a_position));
   v_color = gl_Position * 0.5 + 0.5;
 }
 `;
@@ -92,7 +93,7 @@ let apositionDesc: AttributeDescription = {
 };
 
 let umatrixDesc: UniformDescription = {
-  type: "uniformMatrix3fv",
+  func: gl.uniformMatrix3fv,
 };
 let vs: ShaderBundle = {
   source: vertexShaderSource,
@@ -110,7 +111,7 @@ let modelDrawProperties: ModelDrawProperties = {
   primitiveType: gl.TRIANGLES,
 };
 
-let m = new Model(gl, vs, fs, b, modelDrawProperties);
+let m = new Model("helloworld", gl, vs, fs, b, modelDrawProperties, true);
 registerEvents(gl);
 // main(gfxPipeline);
 // gfxPipeline.draw();
