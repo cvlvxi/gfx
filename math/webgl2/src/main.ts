@@ -1,4 +1,7 @@
-import { Buffer, GfxPipeline, Model, ShaderBundle } from "./pipeline";
+import { GfxPipeline } from "./pipeline";
+import { Buffer } from "./buffer";
+import { ShaderBundle } from "./types";
+import { Model } from "./model";
 import { gl } from "./globals";
 
 var vertexShaderSource = `#version 300 es
