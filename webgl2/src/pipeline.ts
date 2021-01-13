@@ -1,25 +1,22 @@
-import { fragShaderSrc, vertShaderSrc } from "./shaders.js";
+import { Model } from "./model";
+import { AttributeDescription } from "./types";
 
-export default class GfxPipeline {
+export class GfxPipeline {
   gl: WebGL2RenderingContext;
-  vertShader: WebGLShader | undefined;
-  fragShader: WebGLShader | undefined;
-  program: WebGLProgram | undefined;
+  m: Model;
+  program: WebGLProgram | null;
+  positionAttribIndex: GLuint;
+  vao: WebGLVertexArrayObject | null;
+  debug: boolean;
 
-  constructor(gl: WebGL2RenderingContext) {
+  constructor(gl: WebGL2RenderingContext, m: Model, debug: boolean = false) {
     this.gl = gl;
+    this.m = m;
+    this.debug = debug;
     this.setup();
   }
 
-  setup() {
-    this.vertShader = this.createShader(this.gl.VERTEX_SHADER, vertShaderSrc);
-    this.fragShader = this.createShader(this.gl.FRAGMENT_SHADER, fragShaderSrc);
-    this.program = this.createProgram(this.vertShader, this.fragShader);
-    this.createBuffers();
-    console.log("Done with Setup");
-  }
-
-  createShader(type: number, source: string): WebGLShader | undefined {
+  createShader(type: number, source: string): WebGLShader | null {
     let shader = this.gl.createShader(type);
     this.gl.shaderSource(shader, source);
     this.gl.compileShader(shader);
@@ -30,62 +27,83 @@ export default class GfxPipeline {
     this.gl.deleteShader(shader);
   }
 
-  createProgram(
-    vertShader: WebGLShader,
-    fragShader: WebGLShader,
-  ): WebGLProgram | undefined {
+  createProgram(model: Model): WebGLProgram | undefined {
     let program: WebGLProgram = this.gl.createProgram();
-    this.gl.attachShader(program, vertShader);
-    this.gl.attachShader(program, fragShader);
+    this.gl.attachShader(program, model.vs.shader);
+    this.gl.attachShader(program, model.fs.shader);
     this.gl.linkProgram(program);
+
+    // Check link status
+    const linked = this.gl.getProgramParameter(program, this.gl.LINK_STATUS);
+    if (!linked) {
+      throw new Error("Program not linked");
+    }
+
+    // Update Indexes
+    this.m.updateShaderBundles(program);
+
     if (this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
       return program;
     }
     console.log(this.gl.getProgramInfoLog(program));
     this.gl.deleteProgram(program);
-    1;
   }
 
-  createBuffers() {
-    let posAttribLocation: number = this.gl.getAttribLocation(
-      this.program,
-      "a_position",
-    );
-    let posBuffer: WebGLBuffer = this.gl.createBuffer();
-    // Add Global Bind Point
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, posBuffer);
-    // three 2d points
-    var positions = [
-      0,
-      0,
-      0,
-      0.5,
-      0.7,
-      0,
-    ];
-    this.gl.bufferData(
-      this.gl.ARRAY_BUFFER,
-      new Float32Array(positions),
-      this.gl.STATIC_DRAW,
-    );
+  draw() {
+    this.m.draw();
+  }
 
-    // Vertex Array Object
-    let vao = this.gl.createVertexArray();
-    this.gl.bindVertexArray(vao);
-    this.gl.enableVertexAttribArray(posAttribLocation);
+  update() {
+    this.m.update();
+  }
 
-    var size = 2; // 2 components per iteration
-    var type = this.gl.FLOAT; // the data is 32bit floats
-    var normalize = false; // don't normalize the data
-    var stride = 0; // 0 = move forward size * sizeof(type) each iteration to get the next position
-    var offset = 0; // start at the beginning of the buffer
-    this.gl.vertexAttribPointer(
-      posAttribLocation,
-      size,
-      type,
-      normalize,
-      stride,
-      offset,
-    );
+  onWindowResize() {
+    this.gl.canvas.width = window.innerWidth;
+    this.gl.canvas.height = window.innerHeight;
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+  }
+
+  setup() {
+    this.program = this.createProgram(this.m);
+    // Enable the model's positionAttribIndex
+    this.setupVAO();
+    this.setupViewPort();
+    this.gl.useProgram(this.program);
+    this.gl.bindVertexArray(this.vao);
+  }
+
+  setupVAO() {
+    this.vao = this.gl.createVertexArray();
+    this.gl.bindVertexArray(this.vao);
+
+    // Enable attributes
+    this.m.enableAttributes();
+    for (let attributeDescription of this.m.vs.attributeMap.values()) {
+      if (this.debug) {
+        console.log("Checking vertexAttribPointer Attributes");
+        console.log(`positionAttribIndex: ${attributeDescription.location}`);
+        console.log(`size: ${attributeDescription.size}`);
+        console.log(`type: ${attributeDescription.type}`);
+        console.log(`normalize: ${attributeDescription.normalize}`);
+        console.log(`stride: ${attributeDescription.stride}`);
+        console.log(`offset: ${attributeDescription.offset}`);
+      }
+      this.gl.vertexAttribPointer(
+        attributeDescription.location,
+        attributeDescription.size,
+        attributeDescription.type,
+        attributeDescription.normalize,
+        attributeDescription.stride,
+        attributeDescription.offset,
+      );
+    }
+  }
+
+  setupViewPort() {
+    // Tell WebGL how to convert from clip space to pixels
+    this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+    // Clear the canvas
+    this.gl.clearColor(0, 0, 0, 0);
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
   }
 }
