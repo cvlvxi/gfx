@@ -1,4 +1,3 @@
-import { GfxPipeline } from "./pipeline";
 import { AttributeDescription, ShaderBundle } from "./types";
 import { Buffer, Model, ModelDrawProperties } from "./model";
 import { gl } from "./globals";
@@ -51,16 +50,17 @@ async function nextFrame(): Promise<number> {
   });
 }
 
-async function main(pipeline: GfxPipeline) {
+async function main() {
   while (true) {
     let timeMs: number = await nextFrame();
-    pipeline.draw();
   }
 }
 
-function registerEvents(pipeline: GfxPipeline) {
+function registerEvents(gl: WebGL2RenderingContext) {
   window.onresize = () => {
-    gfxPipeline.onWindowResize();
+    gl.canvas.width = window.innerWidth;
+    gl.canvas.height = window.innerHeight;
+    gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
   };
 
   let xinput = document.getElementById("input_xval") as HTMLInputElement;
@@ -103,9 +103,7 @@ let modelDrawProperties: ModelDrawProperties = {
 };
 
 let m = new Model(gl, vs, fs, b, modelDrawProperties);
-let gfxPipeline = new GfxPipeline(gl, m);
-
-registerEvents(gfxPipeline);
+registerEvents(gl);
 // main(gfxPipeline);
 // gfxPipeline.draw();
 m.draw();
