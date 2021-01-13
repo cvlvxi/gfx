@@ -1,8 +1,12 @@
 const path = require("path");
+var HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
   mode: "development",
-  entry: "./src/main.ts",
+  entry: {
+    math: "./src/main.ts",
+    fun: "./fundamentals/fun.js",
+  },
   module: {
     rules: [
       {
@@ -23,6 +27,6 @@ module.exports = {
   },
   output: {
     path: `${__dirname}/dist`,
-    filename: "main.js",
+    filename: "[name].js",
   },
 };

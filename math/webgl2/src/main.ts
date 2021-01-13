@@ -91,6 +91,7 @@ let vs: ShaderBundle = {
   attributeMap: new Map([["a_position", attribPosition]]),
   uniformMap: new Map([["u_matrix", null]]),
 };
+
 let fs: ShaderBundle = {
   source: fragmentShaderSource,
 };
@@ -103,8 +104,10 @@ let modelDrawProperties: ModelDrawProperties = {
 
 let m = new Model(gl, vs, fs, b, modelDrawProperties);
 let gfxPipeline = new GfxPipeline(gl, m);
+
 registerEvents(gfxPipeline);
 // main(gfxPipeline);
 // gfxPipeline.draw();
 m.draw();
+m.update();
 console.log("Done");

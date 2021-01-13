@@ -16,14 +16,31 @@ export class GfxPipeline {
     this.setup();
   }
 
+  createShader(type: number, source: string): WebGLShader | null {
+    let shader = this.gl.createShader(type);
+    this.gl.shaderSource(shader, source);
+    this.gl.compileShader(shader);
+    if (this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+      return shader;
+    }
+    console.log(this.gl.getShaderInfoLog(shader));
+    this.gl.deleteShader(shader);
+  }
+
   createProgram(model: Model): WebGLProgram | undefined {
     let program: WebGLProgram = this.gl.createProgram();
     this.gl.attachShader(program, model.vs.shader);
     this.gl.attachShader(program, model.fs.shader);
     this.gl.linkProgram(program);
 
+    // Check link status
+    const linked = this.gl.getProgramParameter(program, this.gl.LINK_STATUS);
+    if (!linked) {
+      throw new Error("Program not linked");
+    }
+
     // Update Indexes
-    this.m.updateShaderBundleIdxMaps(program);
+    this.m.updateShaderBundles(program);
 
     if (this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
       return program;
@@ -34,6 +51,10 @@ export class GfxPipeline {
 
   draw() {
     this.m.draw();
+  }
+
+  update() {
+    this.m.update();
   }
 
   onWindowResize() {

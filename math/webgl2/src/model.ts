@@ -1,4 +1,5 @@
 import { AttributeDescription, ShaderBundle } from "./types";
+import { Matrix3 } from "math.gl";
 
 export class Buffer {
   buf: WebGLBuffer | null;
@@ -60,6 +61,11 @@ export class Model {
     this.gl.deleteShader(shader);
   }
 
+  update() {
+    // Do some updating here, e.g. uniform update
+    let m3 = new Matrix3().identity;
+  }
+
   draw() {
     this.gl.drawArrays(
       this.drawProperties.primitiveType,
@@ -74,7 +80,7 @@ export class Model {
     }
   }
 
-  updateShaderBundleIdxMap(
+  updateShaderBundle(
     gl: WebGL2RenderingContext,
     program: WebGLProgram,
     bundle: ShaderBundle,
@@ -88,13 +94,14 @@ export class Model {
     }
     if (bundle.uniformMap) {
       for (let key of bundle.uniformMap.keys()) {
-        bundle.uniformMap.set(key, gl.getUniformLocation(program, key));
+        let val = gl.getUniformLocation(program, key);
+        bundle.uniformMap.set(key, val);
       }
     }
   }
 
-  updateShaderBundleIdxMaps(program: WebGLProgram) {
-    this.updateShaderBundleIdxMap(this.gl, program, this.vs);
-    this.updateShaderBundleIdxMap(this.gl, program, this.fs);
+  updateShaderBundles(program: WebGLProgram) {
+    this.updateShaderBundle(this.gl, program, this.vs);
+    this.updateShaderBundle(this.gl, program, this.fs);
   }
 }
