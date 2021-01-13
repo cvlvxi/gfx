@@ -28,31 +28,51 @@ export class Buffer {
   }
 }
 
+export type AttributeIdxMap = Map<string, GLuint | null>;
+export type UniformMap = Map<string, WebGLUniformLocation | null>;
+
+export interface ShaderBundle {
+  shader?: WebGLShader;
+  source: string;
+  attributeMap?: AttributeIdxMap;
+  uniformMap?: UniformMap;
+}
+
 export class Model {
   gl: WebGL2RenderingContext;
-  vs: WebGLShader;
-  fs: WebGLShader;
+  vs: ShaderBundle;
+  fs: ShaderBundle;
   positionAttributeName: string;
   buf: Buffer;
 
   constructor(
     gl: WebGL2RenderingContext,
-    vertexSrc: string,
-    fragSrc: string,
+    vertexBundle: ShaderBundle,
+    fragmentBundle: ShaderBundle,
+    positionAttributeName: string,
     buf: Buffer,
-    positionAttributeName: string = "a_position",
   ) {
     this.gl = gl;
-    this.positionAttributeName = positionAttributeName;
-    if (!vertexSrc.includes(positionAttributeName)) {
-      throw new Error(`${positionAttributeName} must exist in vertexSrc`);
+    if (!vertexBundle.source.includes(positionAttributeName)) {
+      throw new Error(
+        `Could not find ${positionAttributeName} in vertex shader source`,
+      );
     }
-    this.vs = this.createShader(gl.VERTEX_SHADER, vertexSrc);
-    this.fs = this.createShader(gl.FRAGMENT_SHADER, fragSrc);
+    this.positionAttributeName = positionAttributeName;
+    vertexBundle.shader = this.createShader(
+      gl.VERTEX_SHADER,
+      vertexBundle.source,
+    );
+    fragmentBundle.shader = this.createShader(
+      gl.FRAGMENT_SHADER,
+      fragmentBundle.source,
+    );
+    this.vs = vertexBundle;
+    this.fs = fragmentBundle;
     this.buf = buf;
   }
 
-  createShader(type: number, source: string): WebGLShader | undefined {
+  createShader(type: number, source: string): WebGLShader | null {
     let shader = this.gl.createShader(type);
     this.gl.shaderSource(shader, source);
     this.gl.compileShader(shader);
@@ -61,6 +81,33 @@ export class Model {
     }
     console.log(this.gl.getShaderInfoLog(shader));
     this.gl.deleteShader(shader);
+  }
+
+  getPositionIndex(program: WebGLProgram): GLuint {
+    this.updateShaderBundleIdxMap(this.gl, program, this.vs);
+    return this.vs.attributeMap.get(this.positionAttributeName);
+  }
+
+  updateShaderBundleIdxMap(
+    gl: WebGL2RenderingContext,
+    program: WebGLProgram,
+    bundle: ShaderBundle,
+  ) {
+    if (bundle.attributeMap) {
+      for (let key of bundle.attributeMap.keys()) {
+        bundle.attributeMap.set(key, gl.getAttribLocation(program, key));
+      }
+    }
+    if (bundle.uniformMap) {
+      for (let key of bundle.uniformMap.keys()) {
+        bundle.uniformMap.set(key, gl.getUniformLocation(program, key));
+      }
+    }
+  }
+
+  updateShaderBundleIdxMaps(program: WebGLProgram) {
+    this.updateShaderBundleIdxMap(this.gl, program, this.vs);
+    this.updateShaderBundleIdxMap(this.gl, program, this.fs);
   }
 }
 
@@ -81,13 +128,14 @@ export class GfxPipeline {
 
   createProgram(model: Model): WebGLProgram | undefined {
     let program: WebGLProgram = this.gl.createProgram();
-    this.gl.attachShader(program, model.vs);
-    this.gl.attachShader(program, model.fs);
+    this.gl.attachShader(program, model.vs.shader);
+    this.gl.attachShader(program, model.fs.shader);
     this.gl.linkProgram(program);
-    this.positionAttribIndex = this.gl.getAttribLocation(
-      program,
-      model.positionAttributeName,
-    );
+
+    // Update Indexes
+    this.m.updateShaderBundleIdxMaps(program);
+
+    this.positionAttribIndex = this.m.getPositionIndex(program);
     if (this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
       return program;
     }
@@ -112,20 +160,21 @@ export class GfxPipeline {
   setup() {
     this.program = this.createProgram(this.m);
     // Enable the model's positionAttribIndex
-    this.setupAttributes();
-    this.setupView();
+    this.setupVAO();
+    this.setupViewPort();
     this.gl.useProgram(this.program);
     this.gl.bindVertexArray(this.vao);
   }
 
-  setupAttributes() {
+  setupVAO() {
     this.vao = this.gl.createVertexArray();
     this.gl.bindVertexArray(this.vao);
-    this.gl.enableVertexAttribArray(this.positionAttribIndex);
+    let positionIdx = this.m.getPositionIndex(this.program);
+    this.gl.enableVertexAttribArray(positionIdx);
 
     if (this.debug) {
       console.log("Checking vertexAttribPointer Attributes");
-      console.log(`positionAttribIndex: ${this.positionAttribIndex}`);
+      console.log(`positionAttribIndex: ${positionIdx}`);
       console.log(`size: ${this.m.buf.vertexCount}`);
       console.log(`type: ${this.m.buf.type}`);
       console.log(`normalize: ${this.m.buf.normalize}`);
@@ -133,7 +182,7 @@ export class GfxPipeline {
       console.log(`offset: ${this.m.buf.offset}`);
     }
     this.gl.vertexAttribPointer(
-      this.positionAttribIndex,
+      positionIdx,
       this.m.buf.vertexCount,
       this.m.buf.type,
       this.m.buf.normalize,
@@ -142,7 +191,7 @@ export class GfxPipeline {
     );
   }
 
-  setupView() {
+  setupViewPort() {
     // Tell WebGL how to convert from clip space to pixels
     this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
     // Clear the canvas
