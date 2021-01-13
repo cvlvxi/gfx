@@ -1,7 +1,6 @@
 import { GfxPipeline } from "./pipeline";
-import { Buffer } from "./buffer";
-import { ShaderBundle } from "./types";
-import { Model } from "./model";
+import { AttributeDescription, ShaderBundle } from "./types";
+import { Buffer, Model } from "./model";
 import { gl } from "./globals";
 
 var vertexShaderSource = `#version 300 es
@@ -59,6 +58,17 @@ async function main(pipeline: GfxPipeline) {
   }
 }
 
+function registerEvents(pipeline: GfxPipeline) {
+  window.onresize = () => {
+    gfxPipeline.onWindowResize();
+  };
+
+  let xinput = document.getElementById("input_xval") as HTMLInputElement;
+  xinput.onchange = () => {
+    console.log(xinput.value);
+  };
+}
+
 let positions = [
   0,
   0,
@@ -69,9 +79,16 @@ let positions = [
 ];
 
 let b = new Buffer(gl, new Float32Array(positions));
+let attribPosition: AttributeDescription = {
+  size: 2,
+  type: gl.FLOAT,
+  normalize: false,
+  stride: 0,
+  offset: 0,
+};
 let vs: ShaderBundle = {
   source: vertexShaderSource,
-  attributeMap: new Map([["a_position", null]]),
+  attributeMap: new Map([["a_position", attribPosition]]),
   // uniformNames: ["u_matrix"]
 };
 let fs: ShaderBundle = {
@@ -80,11 +97,7 @@ let fs: ShaderBundle = {
 
 let m = new Model(gl, vs, fs, b);
 let gfxPipeline = new GfxPipeline(gl, m);
-
-window.onresize = () => {
-  gfxPipeline.onWindowResize();
-};
-
+registerEvents(gfxPipeline);
 main(gfxPipeline);
 // gfxPipeline.draw();
 console.log("Done");

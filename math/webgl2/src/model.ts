@@ -1,5 +1,18 @@
-import { Buffer } from "./buffer";
-import { ShaderBundle } from "./types";
+import { AttributeDescription, ShaderBundle } from "./types";
+
+export class Buffer {
+  buf: WebGLBuffer | null;
+
+  constructor(
+    gl: WebGL2RenderingContext,
+    data: Float32Array,
+    drawType: GLenum = gl.STATIC_DRAW,
+  ) {
+    this.buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+    gl.bufferData(gl.ARRAY_BUFFER, data, drawType);
+  }
+}
 
 export class Model {
   gl: WebGL2RenderingContext;
@@ -39,8 +52,8 @@ export class Model {
   }
 
   enableAttributes() {
-    for (let [key, idx] of this.vs.attributeMap.entries()) {
-      this.gl.enableVertexAttribArray(idx);
+    for (let [key, attributeDescription] of this.vs.attributeMap.entries()) {
+      this.gl.enableVertexAttribArray(attributeDescription.location);
     }
   }
 
@@ -51,7 +64,9 @@ export class Model {
   ) {
     if (bundle.attributeMap) {
       for (let key of bundle.attributeMap.keys()) {
-        bundle.attributeMap.set(key, gl.getAttribLocation(program, key));
+        let desc: AttributeDescription = bundle.attributeMap.get(key);
+        desc.location = gl.getAttribLocation(program, key);
+        bundle.attributeMap.set(key, desc);
       }
     }
     if (bundle.uniformMap) {

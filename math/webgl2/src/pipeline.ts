@@ -1,4 +1,5 @@
 import { Model } from "./model";
+import { AttributeDescription } from "./types";
 
 export class GfxPipeline {
   gl: WebGL2RenderingContext;
@@ -60,29 +61,25 @@ export class GfxPipeline {
 
     // Enable attributes
     this.m.enableAttributes();
-
-    // FIXME
-    let positionIdx = this.m.vs.attributeMap.values().next().value;
-    if (this.debug) {
-      console.log("Checking vertexAttribPointer Attributes");
-      console.log(`positionAttribIndex: ${positionIdx}`);
-      console.log(`size: ${this.m.buf.vertexCount}`);
-      console.log(`type: ${this.m.buf.type}`);
-      console.log(`normalize: ${this.m.buf.normalize}`);
-      console.log(`stride: ${this.m.buf.stride}`);
-      console.log(`offset: ${this.m.buf.offset}`);
+    for (let attributeDescription of this.m.vs.attributeMap.values()) {
+      if (this.debug) {
+        console.log("Checking vertexAttribPointer Attributes");
+        console.log(`positionAttribIndex: ${attributeDescription.location}`);
+        console.log(`size: ${attributeDescription.size}`);
+        console.log(`type: ${attributeDescription.type}`);
+        console.log(`normalize: ${attributeDescription.normalize}`);
+        console.log(`stride: ${attributeDescription.stride}`);
+        console.log(`offset: ${attributeDescription.offset}`);
+      }
+      this.gl.vertexAttribPointer(
+        attributeDescription.location,
+        attributeDescription.size,
+        attributeDescription.type,
+        attributeDescription.normalize,
+        attributeDescription.stride,
+        attributeDescription.offset,
+      );
     }
-
-    // These need to happen for every attribute
-    // The values should not be tied to the buffer but rathre the attribute
-    this.gl.vertexAttribPointer(
-      positionIdx,
-      this.m.buf.vertexCount,
-      this.m.buf.type,
-      this.m.buf.normalize,
-      this.m.buf.stride,
-      this.m.buf.offset,
-    );
   }
 
   setupViewPort() {
