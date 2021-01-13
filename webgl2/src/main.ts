@@ -1,4 +1,8 @@
-import { AttributeDescription, ShaderBundle } from "./types";
+import {
+  AttributeDescription,
+  ShaderBundle,
+  UniformDescription,
+} from "./types";
 import { Buffer, Model, ModelDrawProperties } from "./model";
 import { gl } from "./globals";
 
@@ -17,8 +21,8 @@ void main() {
 
   // gl_Position is a special variable a vertex shader
   // is responsible for setting
-  gl_Position = a_position;
-  // gl_Position = vec4((u_matrix * vec3(a_position, 1)).xy, 0, 1);
+  // gl_Position = a_position;
+  gl_Position = vec4((u_matrix * vec3(a_position, 1)).xy, 0, 1);
   v_color = gl_Position * 0.5 + 0.5;
 }
 `;
@@ -79,17 +83,21 @@ let positions = [
 ];
 
 let b = new Buffer(gl, new Float32Array(positions));
-let attribPosition: AttributeDescription = {
+let apositionDesc: AttributeDescription = {
   size: 2,
   type: gl.FLOAT,
   normalize: false,
   stride: 0,
   offset: 0,
 };
+
+let umatrixDesc: UniformDescription = {
+  type: "uniformMatrix3fv",
+};
 let vs: ShaderBundle = {
   source: vertexShaderSource,
-  attributeMap: new Map([["a_position", attribPosition]]),
-  uniformMap: new Map([["u_matrix", null]]),
+  attributeMap: new Map([["a_position", apositionDesc]]),
+  uniformMap: new Map([["u_matrix", umatrixDesc]]),
 };
 
 let fs: ShaderBundle = {
