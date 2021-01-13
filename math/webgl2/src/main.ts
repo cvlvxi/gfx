@@ -1,6 +1,6 @@
 import { GfxPipeline } from "./pipeline";
 import { AttributeDescription, ShaderBundle } from "./types";
-import { Buffer, Model } from "./model";
+import { Buffer, Model, ModelDrawProperties } from "./model";
 import { gl } from "./globals";
 
 var vertexShaderSource = `#version 300 es
@@ -9,7 +9,7 @@ var vertexShaderSource = `#version 300 es
 // It will receive data from a buffer
 in vec4 a_position;
 
-// uniform mat3 u_matrix;
+uniform mat3 u_matrix;
 
 out vec4 v_color;
 
@@ -89,15 +89,22 @@ let attribPosition: AttributeDescription = {
 let vs: ShaderBundle = {
   source: vertexShaderSource,
   attributeMap: new Map([["a_position", attribPosition]]),
-  // uniformNames: ["u_matrix"]
+  uniformMap: new Map([["u_matrix", null]]),
 };
 let fs: ShaderBundle = {
   source: fragmentShaderSource,
 };
 
-let m = new Model(gl, vs, fs, b);
+let modelDrawProperties: ModelDrawProperties = {
+  offset: 0,
+  count: 3,
+  primitiveType: gl.TRIANGLES,
+};
+
+let m = new Model(gl, vs, fs, b, modelDrawProperties);
 let gfxPipeline = new GfxPipeline(gl, m);
 registerEvents(gfxPipeline);
-main(gfxPipeline);
+// main(gfxPipeline);
 // gfxPipeline.draw();
+m.draw();
 console.log("Done");

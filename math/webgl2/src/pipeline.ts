@@ -33,11 +33,7 @@ export class GfxPipeline {
   }
 
   draw() {
-    // draw
-    let primitiveType = this.gl.TRIANGLES;
-    let offset = 0;
-    let count = 3;
-    this.gl.drawArrays(primitiveType, offset, count);
+    this.m.draw();
   }
 
   onWindowResize() {

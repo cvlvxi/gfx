@@ -14,19 +14,28 @@ export class Buffer {
   }
 }
 
+export interface ModelDrawProperties {
+  offset: number;
+  count: number;
+  primitiveType: GLenum;
+}
+
 export class Model {
   gl: WebGL2RenderingContext;
   vs: ShaderBundle;
   fs: ShaderBundle;
   buf: Buffer;
+  drawProperties: ModelDrawProperties;
 
   constructor(
     gl: WebGL2RenderingContext,
     vertexBundle: ShaderBundle,
     fragmentBundle: ShaderBundle,
     buf: Buffer,
+    drawProperties: ModelDrawProperties,
   ) {
     this.gl = gl;
+    this.drawProperties = drawProperties;
     vertexBundle.shader = this.createShader(
       gl.VERTEX_SHADER,
       vertexBundle.source,
@@ -49,6 +58,14 @@ export class Model {
     }
     console.log(this.gl.getShaderInfoLog(shader));
     this.gl.deleteShader(shader);
+  }
+
+  draw() {
+    this.gl.drawArrays(
+      this.drawProperties.primitiveType,
+      this.drawProperties.offset,
+      this.drawProperties.count,
+    );
   }
 
   enableAttributes() {
