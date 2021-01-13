@@ -5,23 +5,15 @@ export class Model {
   gl: WebGL2RenderingContext;
   vs: ShaderBundle;
   fs: ShaderBundle;
-  positionAttributeName: string;
   buf: Buffer;
 
   constructor(
     gl: WebGL2RenderingContext,
     vertexBundle: ShaderBundle,
     fragmentBundle: ShaderBundle,
-    positionAttributeName: string,
     buf: Buffer,
   ) {
     this.gl = gl;
-    if (!vertexBundle.source.includes(positionAttributeName)) {
-      throw new Error(
-        `Could not find ${positionAttributeName} in vertex shader source`,
-      );
-    }
-    this.positionAttributeName = positionAttributeName;
     vertexBundle.shader = this.createShader(
       gl.VERTEX_SHADER,
       vertexBundle.source,
@@ -46,9 +38,10 @@ export class Model {
     this.gl.deleteShader(shader);
   }
 
-  getPositionIndex(program: WebGLProgram): GLuint {
-    this.updateShaderBundleIdxMap(this.gl, program, this.vs);
-    return this.vs.attributeMap.get(this.positionAttributeName);
+  enableAttributes() {
+    for (let [key, idx] of this.vs.attributeMap.entries()) {
+      this.gl.enableVertexAttribArray(idx);
+    }
   }
 
   updateShaderBundleIdxMap(

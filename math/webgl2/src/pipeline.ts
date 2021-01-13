@@ -24,7 +24,6 @@ export class GfxPipeline {
     // Update Indexes
     this.m.updateShaderBundleIdxMaps(program);
 
-    this.positionAttribIndex = this.m.getPositionIndex(program);
     if (this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
       return program;
     }
@@ -58,9 +57,12 @@ export class GfxPipeline {
   setupVAO() {
     this.vao = this.gl.createVertexArray();
     this.gl.bindVertexArray(this.vao);
-    let positionIdx = this.m.getPositionIndex(this.program);
-    this.gl.enableVertexAttribArray(positionIdx);
 
+    // Enable attributes
+    this.m.enableAttributes();
+
+    // FIXME
+    let positionIdx = this.m.vs.attributeMap.values().next().value;
     if (this.debug) {
       console.log("Checking vertexAttribPointer Attributes");
       console.log(`positionAttribIndex: ${positionIdx}`);
@@ -70,6 +72,9 @@ export class GfxPipeline {
       console.log(`stride: ${this.m.buf.stride}`);
       console.log(`offset: ${this.m.buf.offset}`);
     }
+
+    // These need to happen for every attribute
+    // The values should not be tied to the buffer but rathre the attribute
     this.gl.vertexAttribPointer(
       positionIdx,
       this.m.buf.vertexCount,

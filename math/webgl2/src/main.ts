@@ -72,13 +72,13 @@ let b = new Buffer(gl, new Float32Array(positions));
 let vs: ShaderBundle = {
   source: vertexShaderSource,
   attributeMap: new Map([["a_position", null]]),
-  // uniformNames: ["u_matrix"],
+  // uniformNames: ["u_matrix"]
 };
 let fs: ShaderBundle = {
   source: fragmentShaderSource,
 };
 
-let m = new Model(gl, vs, fs, "a_position", b);
+let m = new Model(gl, vs, fs, b);
 let gfxPipeline = new GfxPipeline(gl, m);
 
 window.onresize = () => {
