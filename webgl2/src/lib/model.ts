@@ -194,6 +194,8 @@ export abstract class Model {
 
   abstract draw(): void;
 
+  abstract eventHandling(input: any): void;
+
   enableAttributes() {
     for (let [key, attributeDescription] of this.vs.attributeMap.entries()) {
       this.gl.enableVertexAttribArray(attributeDescription.location);

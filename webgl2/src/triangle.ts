@@ -46,11 +46,11 @@ void main() {
 
 let positions = [
   0,
-  0,
-  0,
-  0.5,
-  0.7,
-  0,
+  500,
+  500,
+  -500,
+  -500,
+  -500,
 ];
 
 function setup(gl: WebGL2RenderingContext): ModelArgs {
@@ -94,6 +94,8 @@ function setup(gl: WebGL2RenderingContext): ModelArgs {
 }
 
 export default class TriangleModel extends Model {
+  matrix: mat3;
+
   constructor(gl: WebGL2RenderingContext, args?: OverwriteModelArgs) {
     let defaultArgs: ModelArgs = setup(gl);
     let newArgs: OverwriteModelArgs & ModelArgs = { gl: gl, ...defaultArgs };
@@ -101,13 +103,14 @@ export default class TriangleModel extends Model {
       newArgs = { gl: gl, ...defaultArgs, ...args };
     }
     super(newArgs);
+    this.matrix = mat3.create();
+    mat3.projection(this.matrix, this.gl.canvas.width, this.gl.canvas.height);
+    mat3.scale(this.matrix, this.matrix, [1, -1]);
   }
 
   async update() {
-    let matrix = mat3.create();
-    mat3.identity(matrix);
     let location = this.getUniformLocation("u_matrix");
-    this.gl.uniformMatrix3fv(location, false, matrix);
+    this.gl.uniformMatrix3fv(location, false, this.matrix);
   }
 
   async draw() {
@@ -116,5 +119,34 @@ export default class TriangleModel extends Model {
       this.drawProperties.offset,
       this.drawProperties.count,
     );
+  }
+
+  async eventHandling(input: any) {
+    const TRANSLATE_AMOUNT = 100;
+    let keyEvent = input as KeyboardEvent;
+    let translate: boolean = false;
+    let dx: number = 0;
+    let dy: number = 0;
+    switch (keyEvent.code) {
+      case "KeyW": {
+        dy = TRANSLATE_AMOUNT;
+        break;
+      }
+      case "KeyS": {
+        dy = -TRANSLATE_AMOUNT;
+        break;
+      }
+      case "KeyD": {
+        dx = TRANSLATE_AMOUNT;
+        break;
+      }
+      case "KeyA": {
+        dx = -TRANSLATE_AMOUNT;
+        break;
+      }
+      default:
+        break;
+    }
+    mat3.translate(this.matrix, this.matrix, [dx, dy]);
   }
 }

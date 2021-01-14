@@ -11,16 +11,15 @@ async function nextFrame(): Promise<number> {
   });
 }
 
-function registerEvents(gl: WebGL2RenderingContext) {
+function registerEvents(gl: WebGL2RenderingContext, m: Model) {
   window.onresize = () => {
     gl.canvas.width = window.innerWidth;
     gl.canvas.height = window.innerHeight;
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   };
 
-  let xinput = document.getElementById("input_xval") as HTMLInputElement;
-  xinput.onchange = () => {
-    console.log(xinput.value);
+  window.onkeydown = (e: KeyboardEvent) => {
+    m.eventHandling(e);
   };
 }
 
@@ -32,6 +31,6 @@ async function main(m: Model) {
   }
 }
 
-registerEvents(gl);
 let m = new TriangleModel(gl, { debug: false });
+registerEvents(gl, m);
 main(m);
