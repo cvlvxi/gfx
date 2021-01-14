@@ -37,7 +37,6 @@ export interface ModelArgs {
   gl?: WebGL2RenderingContext;
   vertexBundle: ShaderBundle;
   fragmentBundle: ShaderBundle;
-  buf: Buffer;
   drawProperties: ModelDrawProperties;
   debug: boolean;
 }
@@ -47,7 +46,7 @@ export interface OverwriteModelArgs {
   gl?: WebGL2RenderingContext;
   vertexBundle?: ShaderBundle;
   fragmentBundle?: ShaderBundle;
-  buf?: Buffer;
+  bufs?: Buffer[];
   drawProperties?: ModelDrawProperties;
   debug?: boolean;
 }
@@ -57,7 +56,6 @@ export abstract class Model {
   gl: WebGL2RenderingContext;
   vs: ShaderBundle;
   fs: ShaderBundle;
-  buf: Buffer;
   drawProperties: ModelDrawProperties;
   debug: boolean;
   program: WebGLProgram | null;
@@ -68,7 +66,6 @@ export abstract class Model {
     gl,
     vertexBundle,
     fragmentBundle,
-    buf,
     drawProperties,
     debug = false,
   }: ModelArgs) {
@@ -86,7 +83,6 @@ export abstract class Model {
     );
     this.vs = vertexBundle;
     this.fs = fragmentBundle;
-    this.buf = buf;
 
     // Setup Program
     this.setupProgram();
@@ -206,30 +202,21 @@ export abstract class Model {
 
   enable() {
     this.gl.useProgram(this.program);
-    this.buf.bind();
-    this.enableAttributes();
-    this.setupVAO();
-  }
-
-  enableAttributes() {
-    for (let [key, attributeDescription] of this.vs.attributeMap.entries()) {
-      this.gl.enableVertexAttribArray(attributeDescription.location);
-    }
+    this.gl.bindVertexArray(this.vao);
   }
 
   setupProgram() {
     this.program = this.createProgram();
     this.vao = this.gl.createVertexArray();
     this.setupViewPort();
-    this.enable();
+    this.setupVAO();
   }
 
   setupVAO() {
     this.gl.bindVertexArray(this.vao);
-
     // Enable attributes
-    this.enableAttributes();
-    for (let attributeDescription of this.vs.attributeMap.values()) {
+    for (let [key, attributeDescription] of this.vs.attributeMap.entries()) {
+      attributeDescription.buf;
       if (this.debug) {
         console.log("-".repeat(50));
         console.log(`[${this.name.toUpperCase()} VAO attribute setup]`);
@@ -249,6 +236,7 @@ export abstract class Model {
         attributeDescription.stride,
         attributeDescription.offset,
       );
+      this.gl.enableVertexAttribArray(attributeDescription.location);
     }
   }
 

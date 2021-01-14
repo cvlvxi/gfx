@@ -1,4 +1,4 @@
-#include <vulkanapp.h>
+#include <vulkanapp.hpp>
 
 void VulkanApp::cleanupSwapChain() {
   for (auto framebuffer : swapChainFramebuffers_) {

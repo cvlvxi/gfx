@@ -26,6 +26,10 @@ void main() {
     0,
     gl.canvas.width,
     0,
+    0,
+    -gl.canvas.height,
+    0,
+    gl.canvas.height,
   ];
 
   let b = new model.Buffer(gl, new Float32Array(positions));
@@ -35,6 +39,7 @@ void main() {
     normalize: false,
     stride: 0,
     offset: 0,
+    buf: b,
   };
 
   let umatrixDesc: types.UniformDescription = {
@@ -58,7 +63,6 @@ void main() {
 
   return {
     name: "axis",
-    buf: b,
     debug: false,
     drawProperties: modelDrawProperties,
     fragmentBundle: fs,
@@ -66,7 +70,7 @@ void main() {
   };
 }
 
-export default class AxisModel extends model.Model {
+export default class Axis extends model.Model {
   matrix: mat3;
 
   constructor(gl: WebGL2RenderingContext, args?: model.OverwriteModelArgs) {

@@ -1,3 +1,5 @@
+import * as model from "./model";
+
 export interface AttributeDescription {
   location?: GLuint;
   size: number;
@@ -5,6 +7,7 @@ export interface AttributeDescription {
   normalize: boolean;
   stride: number;
   offset: number;
+  buf: model.Buffer;
 }
 
 export type AttributeIdxMap = Map<string, AttributeDescription>;

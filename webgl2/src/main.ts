@@ -1,6 +1,7 @@
 import { gl } from "./lib/globals";
-import TriangleModel from "./triangle";
+import Triangle from "./triangle";
 import Axis from "./axis";
+import Rect from "./rect";
 import { Model } from "./lib/model";
 if (!gl) {
   console.log("Could not find gl");
@@ -34,9 +35,15 @@ async function main(models: Model[]) {
 }
 
 let models = [
-  new TriangleModel(gl),
-  new Axis(gl),
+  // new Triangle(gl),
+  // new Axis(gl),
+  new Rect(gl, { debug: true }),
 ];
+
+console.log(models[0]);
 
 registerEvents(gl, models[0]);
 main(models);
+
+// models[0].frame();
+//

@@ -5,6 +5,7 @@ import { mat3 } from "gl-matrix";
 function setup(gl: WebGL2RenderingContext): model.ModelArgs {
   let vertexShaderSource = `#version 300 es
   in vec2 a_position;
+//   in vec4 a_color;
   
   uniform mat3 u_matrix;
   
@@ -13,11 +14,8 @@ function setup(gl: WebGL2RenderingContext): model.ModelArgs {
   void main() {
     // Multiply the position by the matrix.
     gl_Position = vec4((u_matrix * vec3(a_position, 1)).xy, 0, 1);
-  
-    // Convert from clipspace to colorspace.
-    // Clipspace goes -1.0 to +1.0
-    // Colorspace goes from 0.0 to 1.0
-    v_color = gl_Position * 0.5 + 0.5;
+    gl_Position = vec4(a_position, 0, 1);
+    // v_color = a_color;
   }
   `;
 
@@ -25,32 +23,81 @@ function setup(gl: WebGL2RenderingContext): model.ModelArgs {
   
   precision highp float;
   
-  in vec4 v_color;
+//   in vec4 v_color;
   
   out vec4 outColor;
   
   void main() {
-    outColor = v_color;
+    outColor = vec4(0,0,0,1);
   }
   `;
 
-  let positions = [
-    0,
+  let positions = new Float32Array([
+    -150,
+    -100,
+    150,
+    -100,
+    -150,
     100,
+    150,
+    -100,
+    -150,
     100,
-    -100,
-    -100,
-    -100,
-  ];
-  let b = new model.Buffer(gl, new Float32Array(positions));
-  let apositionDesc: types.AttributeDescription = {
+    150,
+    100,
+  ]);
+
+  var r1 = Math.random();
+  var b1 = Math.random();
+  var g1 = Math.random();
+  var r2 = Math.random();
+  var b2 = Math.random();
+  var g2 = Math.random();
+  let colors = new Float32Array([
+    r1,
+    b1,
+    g1,
+    1,
+    r1,
+    b1,
+    g1,
+    1,
+    r1,
+    b1,
+    g1,
+    1,
+    r2,
+    b2,
+    g2,
+    1,
+    r2,
+    b2,
+    g2,
+    1,
+    r2,
+    b2,
+    g2,
+    1,
+  ]);
+  let buf1 = new model.Buffer(gl, positions);
+  let buf2 = new model.Buffer(gl, colors);
+  let A_POSITION_DESC: types.AttributeDescription = {
     size: 2,
     type: gl.FLOAT,
     normalize: false,
     stride: 0,
     offset: 0,
-    buf: b,
+    buf: buf1,
   };
+
+  //   let A_COLOR_DESC: types.AttributeDescription = {
+  //     size: 4,
+  //     type: gl.FLOAT,
+  //     normalize: false,
+  //     stride: 0,
+  //     offset: 0,
+  //     buf: buf2,
+  //   };
 
   let umatrixDesc: types.UniformDescription = {
     func: gl.uniformMatrix3fv,
@@ -58,7 +105,10 @@ function setup(gl: WebGL2RenderingContext): model.ModelArgs {
   };
   let vs: types.ShaderBundle = {
     source: vertexShaderSource,
-    attributeMap: new Map([["a_position", apositionDesc]]),
+    attributeMap: new Map([
+      ["a_position", A_POSITION_DESC],
+      //   ["a_color", A_COLOR_DESC],
+    ]),
     uniformMap: new Map([["u_matrix", umatrixDesc]]),
   };
 
@@ -73,7 +123,7 @@ function setup(gl: WebGL2RenderingContext): model.ModelArgs {
   };
 
   return {
-    name: "triangle",
+    name: "Rectangle",
     debug: false,
     drawProperties: modelDrawProperties,
     fragmentBundle: fs,
@@ -81,7 +131,7 @@ function setup(gl: WebGL2RenderingContext): model.ModelArgs {
   };
 }
 
-export default class Triangle extends model.Model {
+export default class Rect extends model.Model {
   matrix: mat3;
 
   constructor(gl: WebGL2RenderingContext, args?: model.OverwriteModelArgs) {
@@ -95,13 +145,14 @@ export default class Triangle extends model.Model {
     }
     super(newArgs);
     this.matrix = mat3.create();
-    mat3.projection(this.matrix, this.gl.canvas.width, this.gl.canvas.height);
-    mat3.translate(
-      this.matrix,
-      this.matrix,
-      [this.gl.canvas.width / 2, this.gl.canvas.height / 2],
-    );
-    mat3.scale(this.matrix, this.matrix, [1, -1]);
+    mat3.identity(this.matrix);
+    // mat3.projection(this.matrix, this.gl.canvas.width, this.gl.canvas.height);
+    // mat3.translate(
+    //   this.matrix,
+    //   this.matrix,
+    //   [this.gl.canvas.width / 2, this.gl.canvas.height / 2],
+    // );
+    // mat3.scale(this.matrix, this.matrix, [1, -1]);
   }
 
   async update() {

@@ -11,6 +11,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
 
 set(WARNING_FLAGS "-Wall")
 
@@ -20,6 +21,7 @@ get_filename_component(EXTERN "extern" ABSOLUTE)
 get_filename_component(INCLUDE "include" ABSOLUTE)
 
 include_directories(include)
+include_directories(src)
 
 #################################################################
 # External Dependencies
