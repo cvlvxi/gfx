@@ -14,6 +14,7 @@ export interface UniformDescription {
   location?: WebGLUniformLocation;
   transpose?: boolean;
   func: Function;
+  matrix: boolean;
 }
 
 export interface ShaderBundle {

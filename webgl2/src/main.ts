@@ -1,5 +1,6 @@
 import { gl } from "./lib/globals";
 import TriangleModel from "./triangle";
+import { Model } from "./lib/model";
 if (!gl) {
   console.log("Could not find gl");
 }
@@ -10,17 +11,11 @@ async function nextFrame(): Promise<number> {
   });
 }
 
-async function main() {
-  while (true) {
-    let timeMs: number = await nextFrame();
-  }
-}
-
 function registerEvents(gl: WebGL2RenderingContext) {
   window.onresize = () => {
     gl.canvas.width = window.innerWidth;
     gl.canvas.height = window.innerHeight;
-    gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   };
 
   let xinput = document.getElementById("input_xval") as HTMLInputElement;
@@ -29,6 +24,14 @@ function registerEvents(gl: WebGL2RenderingContext) {
   };
 }
 
+async function main(m: Model) {
+  while (true) {
+    let timeMs: number = await nextFrame();
+    await m.update();
+    await m.draw();
+  }
+}
+
 registerEvents(gl);
-let m = new TriangleModel({ gl: gl });
-m.draw();
+let m = new TriangleModel(gl, { debug: false });
+main(m);

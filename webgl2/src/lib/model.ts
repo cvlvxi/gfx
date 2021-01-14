@@ -4,6 +4,8 @@ import {
   UniformDescription,
 } from "./types";
 
+import { mat3 } from "gl-matrix";
+
 export class Buffer {
   buf: WebGLBuffer | null;
 
@@ -36,7 +38,7 @@ export interface ModelArgs {
 
 export interface OverwriteModelArgs {
   name?: string;
-  gl: WebGL2RenderingContext;
+  gl?: WebGL2RenderingContext;
   vertexBundle?: ShaderBundle;
   fragmentBundle?: ShaderBundle;
   buf?: Buffer;
@@ -133,6 +135,26 @@ export abstract class Model {
     if (this.debug || foundErr) {
       console.log(errMsg);
     }
+  }
+
+  getUniformLocation(key: string): WebGLUniformLocation {
+    let obj: UniformDescription | null = null;
+    if (this.vs.uniformMap.has(key)) {
+      obj = this.vs.uniformMap.get(key);
+    } else if (this.fs.uniformMap.has(key)) {
+      obj = this.fs.uniformMap.get(key);
+    }
+    if (obj === null) {
+      throw new Error(
+        `Tried to get uniform val for ${key} which doesn't exist`,
+      );
+    }
+    if (!obj.location) {
+      throw new Error(
+        `Can't ${key} when invalid location in Program`,
+      );
+    }
+    return obj.location;
   }
 
   createShader(type: number, source: string): WebGLShader | null {
