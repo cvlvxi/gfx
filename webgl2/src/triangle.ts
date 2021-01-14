@@ -46,11 +46,11 @@ void main() {
 
 let positions = [
   0,
-  500,
-  500,
-  -500,
-  -500,
-  -500,
+  100,
+  100,
+  -100,
+  -100,
+  -100,
 ];
 
 function setup(gl: WebGL2RenderingContext): ModelArgs {
@@ -105,6 +105,11 @@ export default class TriangleModel extends Model {
     super(newArgs);
     this.matrix = mat3.create();
     mat3.projection(this.matrix, this.gl.canvas.width, this.gl.canvas.height);
+    mat3.translate(
+      this.matrix,
+      this.matrix,
+      [this.gl.canvas.width / 2, this.gl.canvas.height / 2],
+    );
     mat3.scale(this.matrix, this.matrix, [1, -1]);
   }
 
