@@ -1,10 +1,9 @@
-use winit::event_loop::{EventLoop};
+
 mod vkapp;
+mod window;
 
 fn main() {
-
-    let event_loop = EventLoop::new();
-    let _window = vkapp::VulkanApp::init_window(&event_loop);
-
-    vkapp::VulkanApp::main_loop(event_loop);
+    let mut app = vkapp::VulkanApp::new(window::WindowDesc::default());
+    app.run();
 }
+
