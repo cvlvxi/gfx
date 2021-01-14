@@ -8,15 +8,21 @@ import { mat3 } from "gl-matrix";
 
 export class Buffer {
   buf: WebGLBuffer | null;
+  gl: WebGL2RenderingContext;
 
   constructor(
     gl: WebGL2RenderingContext,
     data: Float32Array,
     drawType: GLenum = gl.STATIC_DRAW,
   ) {
+    this.gl = gl;
     this.buf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+    this.bind();
     gl.bufferData(gl.ARRAY_BUFFER, data, drawType);
+  }
+
+  bind() {
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buf);
   }
 }
 
@@ -196,6 +202,15 @@ export abstract class Model {
 
   abstract eventHandling(input: any): void;
 
+  abstract frame(): void;
+
+  enable() {
+    this.gl.useProgram(this.program);
+    this.buf.bind();
+    this.enableAttributes();
+    this.setupVAO();
+  }
+
   enableAttributes() {
     for (let [key, attributeDescription] of this.vs.attributeMap.entries()) {
       this.gl.enableVertexAttribArray(attributeDescription.location);
@@ -204,15 +219,12 @@ export abstract class Model {
 
   setupProgram() {
     this.program = this.createProgram();
-    // Enable the model's positionAttribIndex
-    this.setupVAO();
+    this.vao = this.gl.createVertexArray();
     this.setupViewPort();
-    this.gl.useProgram(this.program);
-    this.gl.bindVertexArray(this.vao);
+    this.enable();
   }
 
   setupVAO() {
-    this.vao = this.gl.createVertexArray();
     this.gl.bindVertexArray(this.vao);
 
     // Enable attributes

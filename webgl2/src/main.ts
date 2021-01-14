@@ -1,5 +1,6 @@
 import { gl } from "./lib/globals";
 import TriangleModel from "./triangle";
+import Axis from "./axis";
 import { Model } from "./lib/model";
 if (!gl) {
   console.log("Could not find gl");
@@ -23,14 +24,19 @@ function registerEvents(gl: WebGL2RenderingContext, m: Model) {
   };
 }
 
-async function main(m: Model) {
+async function main(models: Model[]) {
   while (true) {
     let timeMs: number = await nextFrame();
-    await m.update();
-    await m.draw();
+    for (let m of models) {
+      await m.frame();
+    }
   }
 }
 
-let m = new TriangleModel(gl, { debug: false });
-registerEvents(gl, m);
-main(m);
+let models = [
+  new TriangleModel(gl),
+  new Axis(gl),
+];
+
+registerEvents(gl, models[0]);
+main(models);
