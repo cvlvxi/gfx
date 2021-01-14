@@ -22,3 +22,7 @@ export interface ShaderBundle {
   attributeMap?: AttributeIdxMap;
   uniformMap?: UniformMap;
 }
+
+export interface ModelConstructorParams {
+  name: string;
+}

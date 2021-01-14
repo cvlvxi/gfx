@@ -25,6 +25,26 @@ export interface ModelDrawProperties {
   primitiveType: GLenum;
 }
 
+export interface ModelArgs {
+  name?: string;
+  gl?: WebGL2RenderingContext;
+  vertexBundle: ShaderBundle;
+  fragmentBundle: ShaderBundle;
+  buf: Buffer;
+  drawProperties: ModelDrawProperties;
+  debug: boolean;
+}
+
+export interface OverwriteModelArgs {
+  name?: string;
+  gl: WebGL2RenderingContext;
+  vertexBundle?: ShaderBundle;
+  fragmentBundle?: ShaderBundle;
+  buf?: Buffer;
+  drawProperties?: ModelDrawProperties;
+  debug?: boolean;
+}
+
 export class Model {
   name: string;
   gl: WebGL2RenderingContext;
@@ -36,15 +56,15 @@ export class Model {
   program: WebGLProgram | null;
   vao: WebGLVertexArrayObject | null;
 
-  constructor(
-    name: string,
-    gl: WebGL2RenderingContext,
-    vertexBundle: ShaderBundle,
-    fragmentBundle: ShaderBundle,
-    buf: Buffer,
-    drawProperties: ModelDrawProperties,
-    debug: boolean = false,
-  ) {
+  constructor({
+    name,
+    gl,
+    vertexBundle,
+    fragmentBundle,
+    buf,
+    drawProperties,
+    debug = false,
+  }: ModelArgs) {
     this.name = name;
     this.debug = debug;
     this.gl = gl;
@@ -65,7 +85,7 @@ export class Model {
     this.setupProgram();
   }
 
-  checkGl(hardfail: boolean = true, msg: string = "") {
+  checkGl(msg: string = "", hardfail: boolean = true) {
     let glErr = this.gl.getError();
     let foundErr = false;
     let errMsg = "";
@@ -75,32 +95,32 @@ export class Model {
         break;
       }
       case this.gl.INVALID_ENUM: {
-        errMsg = ``
-          `An unacceptable value has been specified for an enumerated argument. 
-          The command is ignored and the error flag is set. ${msg}```;
+        errMsg = `
+          An unacceptable value has been specified for an enumerated argument. 
+          The command is ignored and the error flag is set. ${msg}`;
         foundErr = true;
         break;
       }
       case this.gl.INVALID_VALUE: {
-        errMsg = ```A numeric argument is out of range. 
-        The command is ignored and the error flag is set. ${msg}```;
+        errMsg = `A numeric argument is out of range. 
+        The command is ignored and the error flag is set. ${msg}`;
         foundErr = true;
         break;
       }
       case this.gl.INVALID_OPERATION: {
-        errMsg = ```The specified command is not allowed for the current state. 
-        The command is ignored and the error flag is set. ${msg}```;
+        errMsg = `The specified command is not allowed for the current state. 
+        The command is ignored and the error flag is set. ${msg}`;
         foundErr = true;
         break;
       }
       case this.gl.INVALID_FRAMEBUFFER_OPERATION: {
-        errMsg = ```The currently bound framebuffer is not framebuffer complete 
-        when trying to render to or to read from it. ${msg}```;
+        errMsg = `The currently bound framebuffer is not framebuffer complete 
+        when trying to render to or to read from it. ${msg}`;
         foundErr = true;
         break;
       }
       case this.gl.OUT_OF_MEMORY: {
-        errMsg = ```Not enough memory is left to execute the command. ${msg}```;
+        errMsg = `Not enough memory is left to execute the command. ${msg}`;
         foundErr = true;
         break;
       }
@@ -110,7 +130,8 @@ export class Model {
     }
     if (hardfail && foundErr) {
       throw new Error(errMsg);
-    } else if (!hardfail && foundErr) {
+    }
+    if (this.debug || foundErr) {
       console.log(errMsg);
     }
   }
@@ -119,10 +140,10 @@ export class Model {
     let shader = this.gl.createShader(type);
     this.gl.shaderSource(shader, source);
     this.gl.compileShader(shader);
+    this.checkGl("createShader");
     if (this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
       return shader;
     }
-    console.log(this.gl.getError());
     console.log(this.gl.getShaderInfoLog(shader));
     this.gl.deleteShader(shader);
   }
