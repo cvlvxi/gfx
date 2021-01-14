@@ -11,17 +11,19 @@ import {
   OverwriteModelArgs,
 } from "./lib/model";
 
+import { Matrix3 } from "math.gl";
+
 var vertexShaderSource = `#version 300 es
 in vec2 a_position;
 
-// uniform mat3 u_matrix;
+uniform mat3 u_matrix;
 
 out vec4 v_color;
 
 void main() {
   // Multiply the position by the matrix.
-//   gl_Position = vec4((u_matrix * vec3(a_position, 1)).xy, 0, 1);
-    gl_Position = vec4(a_position, 0, 1);
+  gl_Position = vec4((u_matrix * vec3(a_position, 1)).xy, 0, 1);
+    // gl_Position = vec4(a_position, 0, 1);
 
   // Convert from clipspace to colorspace.
   // Clipspace goes -1.0 to +1.0
@@ -93,5 +95,18 @@ export default class TriangleModel extends Model {
     };
     let newArgs: OverwriteModelArgs & ModelArgs = { ...defaultArgs, ...args };
     super(newArgs);
+  }
+
+  update() {
+    //   Do some updating here, e.g. uniform update
+    let m3 = new Matrix3().identity;
+  }
+
+  draw() {
+    this.gl.drawArrays(
+      this.drawProperties.primitiveType,
+      this.drawProperties.offset,
+      this.drawProperties.count,
+    );
   }
 }

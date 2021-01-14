@@ -3,7 +3,6 @@ import {
   ShaderBundle,
   UniformDescription,
 } from "./types";
-import { Matrix3 } from "math.gl";
 
 export class Buffer {
   buf: WebGLBuffer | null;
@@ -45,7 +44,7 @@ export interface OverwriteModelArgs {
   debug?: boolean;
 }
 
-export class Model {
+export abstract class Model {
   name: string;
   gl: WebGL2RenderingContext;
   vs: ShaderBundle;
@@ -169,18 +168,9 @@ export class Model {
     this.gl.deleteProgram(program);
   }
 
-  update() {
-    // Do some updating here, e.g. uniform update
-    let m3 = new Matrix3().identity;
-  }
+  abstract update(): void;
 
-  draw() {
-    this.gl.drawArrays(
-      this.drawProperties.primitiveType,
-      this.drawProperties.offset,
-      this.drawProperties.count,
-    );
-  }
+  abstract draw(): void;
 
   enableAttributes() {
     for (let [key, attributeDescription] of this.vs.attributeMap.entries()) {
