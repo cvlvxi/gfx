@@ -10,8 +10,8 @@ pub struct WindowDesc {
     pub title: &'static str,
     pub width: u32,
     pub height: u32,
-    pub eventloop: Option<EventLoop<()>>,
-    pub window: Option<winit::window::Window>,
+    pub eventloop: EventLoop<()>,
+    pub window: winit::window::Window,
 }
 
 impl Default for WindowDesc {
@@ -29,8 +29,8 @@ impl Default for WindowDesc {
             title: WINDOW_TITLE,
             width: WINDOW_WIDTH,
             height: WINDOW_HEIGHT,
-            eventloop: Some(eventloop),
-            window: Some(window),
+            eventloop: eventloop,
+            window: window,
         }
     }
 }
@@ -38,7 +38,6 @@ impl Default for WindowDesc {
 impl WindowDesc {
     pub fn run_event_loop(self) {
         self.eventloop
-            .unwrap()
             .run(move |event, _, control_flow| match event {
                 Event::WindowEvent { event, .. } => match event {
                     WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
