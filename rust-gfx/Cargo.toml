@@ -1,0 +1,20 @@
+[package]
+name = "rust-gfx"
+version = "0.1.0"
+authors = ["cvlvxi <cvlvxi@outlook.com>"]
+edition = "2018"
+
+
+[features]
+default = []
+metal = ["gfx-backend-metal"]
+vulkan = ["gfx-backend-vulkan"]
+
+[dependencies]
+winit = "0.24.0"
+image = "0.23.12"
+gfx-hal = "0.6.0"
+gfx-auxil = "0.7.0"
+gfx-backend-empty = "0.6.0"
+gfx-backend-metal = { version = "0.6.5", optional = true}
+gfx-backend-vulkan = { version = "0.6.5", optional = true}
