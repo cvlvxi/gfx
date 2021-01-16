@@ -24,7 +24,16 @@ get_filename_component(INCLUDE "include" ABSOLUTE)
 find_package(OpenGL REQUIRED)
 add_subdirectory(${EXTERN})
 
-include_directories(src)
+add_definitions(
+	-DLOG_USE_COLOR
+)
+add_library(log STATIC ${EXTERN}/log/src/log.c)
+target_include_directories(log PUBLIC ${EXTERN}/log/src)
 
-add_executable(main main.cpp src/shaders.cpp src/shaders.hpp)
-target_link_libraries(main PRIVATE glfw libglew_static glm)
+
+add_library(glapp INTERFACE)
+target_include_directories(glapp INTERFACE src)
+target_link_libraries(glapp INTERFACE glfw libglew_static glm log)
+
+add_executable(main main.cpp)
+target_link_libraries(main glapp)

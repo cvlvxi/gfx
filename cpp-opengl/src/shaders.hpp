@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include <stdio.h>
 #include <string>
@@ -10,10 +10,11 @@
 using namespace std;
 
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 
 #include <GL/glew.h>
 
 
 
-GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path);
+GLuint
+LoadShaders(const char *vertex_file_path, const char *fragment_file_path);
