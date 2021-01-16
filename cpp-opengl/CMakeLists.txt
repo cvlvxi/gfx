@@ -24,5 +24,7 @@ get_filename_component(INCLUDE "include" ABSOLUTE)
 find_package(OpenGL REQUIRED)
 add_subdirectory(${EXTERN})
 
-add_executable(main main.cpp)
+include_directories(src)
+
+add_executable(main main.cpp src/shaders.cpp src/shaders.hpp)
 target_link_libraries(main PRIVATE glfw libglew_static glm)
