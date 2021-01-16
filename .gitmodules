@@ -1,3 +1,12 @@
 [submodule "cpp-vulkan/extern/fmt"]
 	path = cpp-vulkan/extern/fmt
 	url = https://github.com/fmtlib/fmt.git
+[submodule "cpp-opengl/extern/glew"]
+	path = cpp-opengl/extern/glew
+	url = https://github.com/Perlmint/glew-cmake.git
+[submodule "cpp-opengl/extern/glfw"]
+	path = cpp-opengl/extern/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "cpp-opengl/extern/glm"]
+	path = cpp-opengl/extern/glm
+	url = https://github.com/g-truc/glm.git
