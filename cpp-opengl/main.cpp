@@ -1,8 +1,8 @@
 
-#include <model.hpp>
-#include <window.hpp>
+#include <app.hpp>
+
 
 int main() {
-	WindowDesc w;
+	App a = App();
 	return 0;
 }

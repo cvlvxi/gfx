@@ -2,14 +2,12 @@
 
 #include "includes.hpp"
 
-struct VertexShaderBundle
-{
-    GLuint shaderLocation;
-    std::string source;
+struct VertexShaderBundle {
+  GLuint shaderLocation;
+  std::string source;
 };
 
-class Model
-{
+class Model {
 public:
-    std::string name;
+  std::string name;
 };
